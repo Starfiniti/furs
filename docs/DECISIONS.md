@@ -238,6 +238,11 @@ baseline change and renewed vulnerability evidence. A networked CI check compare
 the current tag digest and update timestamp with that reviewed baseline so a
 repointed tag cannot become silent dependency drift.
 
+The Node runtime uses the reviewed Alpine variant and removes npm and Corepack
+after the production bundles are assembled. Package managers are build tools,
+not runtime dependencies; excluding them removes their transitive vulnerability
+surface without weakening the image scan gate.
+
 ## ADR-025 — The public contract is executable documentation
 
 **Status:** Accepted

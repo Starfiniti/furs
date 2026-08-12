@@ -2,9 +2,9 @@
   "reviewedAt": "2026-08-12",
   "images": {
     "node": {
-      "reference": "node:24-bookworm-slim@sha256:3638d9a6fe4030bd716be989438248074489337ba3275657f93595428be4fc03",
-      "source": "https://hub.docker.com/v2/repositories/library/node/tags/24-bookworm-slim",
-      "tagLastUpdated": "2026-08-05T02:39:36.009852Z"
+      "reference": "node:24-alpine3.23@sha256:244cc2b53f46f9e876304391d17682b0ddae9ac33491f4857e25e35a36ba7995",
+      "source": "https://hub.docker.com/v2/repositories/library/node/tags/24-alpine3.23",
+      "tagLastUpdated": "2026-08-03T23:39:03.904384Z"
     },
     "postgres": {
       "reference": "postgres:17.10-bookworm@sha256:9b18b78397054fce88a9552e9d5a3ad5bb7fd258c5b3cc1c5028e46373d6ea8f",

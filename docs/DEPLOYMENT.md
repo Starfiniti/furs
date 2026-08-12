@@ -64,7 +64,10 @@ the digest to obtain a newer image implicitly. `corepack pnpm container:check`
 fails when a reviewed Docker Hub tag is repointed, and CI runs it alongside the
 official-source check. The final service image contains
 three production-only bundles (API, worker and migration/provisioning) and no
-TypeScript compiler, PGlite, repository tests or source tree. The separate
+package manager, TypeScript compiler, PGlite, repository tests or source tree.
+The reviewed Alpine runtime reduces the operating-system package surface while
+the vulnerability gate continues to reject every known high or critical finding.
+The separate
 Docker `evidence` target retains the versioned evidence runner only for the
 isolated `compose.evidence.yaml` workflow.
 

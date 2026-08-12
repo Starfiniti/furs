@@ -95,6 +95,7 @@ async function verifyContainerDefinitions() {
     'pnpm --filter @starfiniti/furs-worker deploy --prod --offline /release/worker',
     'pnpm --filter @starfiniti/furs-persistence-postgres deploy --prod --offline /release/persistence',
     'FROM build AS evidence',
+    'rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack',
     'COPY LICENSE NOTICE THIRD_PARTY_NOTICES.md ./',
     'COPY --from=build --chown=node:node /app/LICENSE /app/NOTICE /app/THIRD_PARTY_NOTICES.md /app/',
     'CMD ["node", "/app/api/dist/main.js"]'
