@@ -26,6 +26,27 @@ named reviewer. A green local test suite is necessary but not sufficient.
 
 Record unsupported scenarios explicitly. Never describe this software as FURS-certified.
 
+## Final evidence manifest
+
+Copy `templates/release-evidence-manifest.example.json` to a protected path
+outside the repository. Replace every placeholder only from reviewed evidence;
+leave the committed template deliberately failing closed. Store report/review
+SHA-256 values and named decisions in the manifest, while keeping sensitive
+reports in the protected release archive.
+
+Set `FURS_RELEASE_EVIDENCE_MANIFEST_PATH` to that absolute external path and run:
+
+```text
+corepack pnpm release:verify
+```
+
+The verifier requires a clean worktree and an exact HEAD commit match. It rejects
+production-labelled test evidence, unresolved official-source changes, missing
+FURS scenarios, PostgreSQL/restore/rotation gaps, load below 3x expected peak,
+a soak shorter than 48 hours, incomplete drills/alerts, container HIGH/CRITICAL
+findings, placeholder or unapproved reviewers, and a missing/mismatched final
+SPDX `LICENSE`. Preserve its redacted success output with the release evidence.
+
 The `container-security` CI job builds the actual Dockerfile, produces a
 CycloneDX SBOM and fails on any HIGH/CRITICAL image finding. Every third-party
 action is pinned to a full commit SHA; the Trivy action is pinned to the signed

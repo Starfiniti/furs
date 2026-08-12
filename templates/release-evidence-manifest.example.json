@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "releaseId": "replace-with-release-id",
+  "commitSha": "replace-with-40-character-commit-sha",
+  "environment": "test",
+  "legalEntityId": "replace-with-legal-entity-uuid",
+  "sourceReview": {
+    "sha256": "replace-with-report-sha256",
+    "snapshotSha256": "replace-with-source-snapshot-sha256",
+    "reviewedBy": "replace-with-reviewer",
+    "reviewedAt": "YYYY-MM-DD",
+    "unresolvedSourceChanges": ["spot-online-retail"]
+  },
+  "reports": {
+    "furs": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "environment": "test", "operations": [] },
+    "postgres": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "majorVersion": 17 },
+    "restore": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "pitrVerified": false, "sequenceHighWaterVerified": false },
+    "rotation": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "clientCertificateVerified": false, "trustChainVerified": false },
+    "load": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "expectedPeakPerSecond": 0, "achievedPerSecond": 0, "duplicateIdentities": 0 },
+    "soak": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "durationHours": 0, "failures": 0 },
+    "networkOutageDrill": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "subsequentSubmissionVerified": false },
+    "deviceFailureDrill": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "vkrBoundaryVerified": false },
+    "alerts": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "fired": [] },
+    "container": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "sbomSha256": "replace", "unresolvedHigh": -1, "unresolvedCritical": -1, "workflowUrl": "replace" }
+  },
+  "approvals": {
+    "cryptographyReview": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false },
+    "securityReview": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false },
+    "accountingReview": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false },
+    "privacyReview": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false },
+    "complianceAcceptance": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false }
+  },
+  "license": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false, "spdx": "UNLICENSED" }
+}

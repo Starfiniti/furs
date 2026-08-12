@@ -37,13 +37,15 @@ FURS certification or endorsement.
 - Fail-closed, redacted evidence executors for official FURS test operations,
   PostgreSQL concurrency/crash recovery, restored-database invariants,
   certificate rotation, controlled test load and a two-day soak.
+- A final protected-manifest verifier that binds every required P0-P7 report and
+  named approval to the exact clean commit and approved SPDX license.
 
 ## Reproducible local evidence
 
 | Check | Result |
 |---|---|
-| `corepack pnpm check` | 139 passed; 0 failed, skipped or todo; production bundle verifier passed |
-| Secret scan | 226 repository files passed |
+| `corepack pnpm check` | 144 passed; 0 failed, skipped or todo; production bundle verifier passed |
+| Secret scan | 230 repository files passed |
 | `corepack pnpm audit --prod --audit-level=high` | No known vulnerabilities |
 | OpenAPI generated artifact | Current and check passes |
 | Generated PHP client | `php -l` passes |

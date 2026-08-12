@@ -240,3 +240,15 @@ against their published component schemas. Compliance-sensitive request examples
 also pass through the live API contract. Unexpected implementation failures are
 generic HTTP 500 responses; malformed caller input is a redacted HTTP 400
 `FURS_REQUEST_VALIDATION` response.
+
+## ADR-026 — Final release approval is a verified external manifest
+
+**Status:** Accepted
+**Date:** 2026-08-12
+
+Sensitive evidence stays in a protected release archive. A manifest outside the
+repository records only hashes, test-environment identifiers, quantitative gate
+results and named dated approvals. `release:verify` binds it to a clean exact
+commit and fails closed across every P0-P7 evidence class, including the current
+official-source state and final SPDX license. The deliberately incomplete example
+manifest can never serve as approval.

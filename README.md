@@ -16,8 +16,8 @@ ZOI, JWS, strict mTLS primitives, signed-response verification, official-schema
 validation, business premises, invoice workflows, PostgreSQL idempotency,
 outbox/retries/audit, REST intake, receipt codes and adapter replay.
 
-The current local gate is 139 passing tests with no failures, skips or todos;
-generated contracts and the 226-file repository secret scan pass, and the production
+The current local gate is 144 passing tests with no failures, skips or todos;
+generated contracts and the 230-file repository secret scan pass, and the production
 dependency audit reports no known vulnerabilities.
 
 Production activation remains blocked until the requested FURS test certificate
@@ -72,6 +72,10 @@ Generate the checked-in OpenAPI contract after contract changes:
 ```bash
 corepack pnpm contract:generate
 ```
+
+After every external P0-P7 report and human approval exists, populate the
+protected release-evidence manifest described in `docs/RELEASE_CHECKLIST.md` and
+run `corepack pnpm release:verify`. The checked-in example intentionally fails.
 
 ## Self-hosted runtime
 
