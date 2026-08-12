@@ -30,5 +30,5 @@
     "privacyReview": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false },
     "complianceAcceptance": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false }
   },
-  "license": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false, "spdx": "UNLICENSED" }
+  "license": { "sha256": "replace", "reviewedBy": "replace", "reviewedAt": "YYYY-MM-DD", "approved": false, "spdx": "Apache-2.0" }
 }

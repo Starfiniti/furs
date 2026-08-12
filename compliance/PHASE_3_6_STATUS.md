@@ -64,7 +64,7 @@ platform admin UX and accountant-approved refund/payment scenario mappings.
 
 - `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; the
   production-only bundle layout also passes.
-- Secret scan: 233 repository files checked.
+- Secret scan: 239 repository files checked.
 - Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
   integrity rehearsals passed; production PITR remains external.
 - `corepack pnpm audit --prod --audit-level=high`: no known vulnerabilities.

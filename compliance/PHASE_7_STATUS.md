@@ -34,6 +34,9 @@ Gate status: evidence automation implemented; external executions pending
   exact clean commit and refuses unresolved sources, incomplete official FURS
   paths, insufficient load/soak/restore/rotation/drills/alerts, security findings,
   unnamed approvals or an unapproved/missing final license.
+- Apache-2.0 is selected for the repository and all current standalone packages;
+  canonical license text, notices, DCO policy, dependency inventory and runtime
+  image preservation are machine-checked.
 
 The API exposes authenticated read-only system identity metadata so evidence
 runners can prove they are targeting the intended test deployment. The crypto
@@ -43,7 +46,7 @@ files, never command-line arguments or environment values.
 ## Local acceptance evidence
 
 - `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
-- Secret scan: 233 files passed.
+- Secret scan: 239 files passed.
 - Production dependency audit: no known vulnerabilities.
 - OpenAPI consistency, PHP syntax and four deployment/CI YAML files pass.
 - Native PostgreSQL 17.10 concurrency/crash and separate logical-restore

@@ -19,7 +19,7 @@
   restored databases, certificate rotation, controlled load and a two-day soak.
 
 Local verification: 147 tests pass with no failures, skips or todos, the
-233-file secret scan passes, the production-only bundle layout is verified, and
+239-file secret scan passes, the production-only bundle layout is verified, and
 the production dependency audit reports no known vulnerabilities.
 
 A native temporary PostgreSQL 17.10 run passed 128 unique concurrent sequence
@@ -38,9 +38,7 @@ see `compliance/LOCAL_POSTGRES_EVIDENCE_2026-08-12.md`.
   accepting a new baseline or releasing payment/adaptor policy.
 - Preserve and review formal PostgreSQL evidence, then complete production PITR,
   Docker/container, soak, load, certificate rotation and external security tests.
-- Approve and add the final repository/adaptor license before public release.
-
-The repository is currently private/unlicensed in package metadata. The proposed
-Apache/adaptor licensing split is not a granted license.
+The public repository, all current packages and standalone adapters are licensed
+under Apache-2.0 by Starfiniti d.o.o.; contributions use DCO 1.1 sign-off.
 
 No production activation is permitted before `docs/RELEASE_CHECKLIST.md` is complete.

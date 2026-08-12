@@ -17,7 +17,7 @@ validation, business premises, invoice workflows, PostgreSQL idempotency,
 outbox/retries/audit, REST intake, receipt codes and adapter replay.
 
 The current local gate is 147 passing tests with no failures, skips or todos;
-generated contracts and the 233-file repository secret scan pass, and the production
+generated contracts and the 239-file repository secret scan pass, and the production
 dependency audit reports no known vulnerabilities.
 
 Production activation remains blocked until the requested FURS test certificate
@@ -93,7 +93,9 @@ Full setup and security notes are in `docs/DEPLOYMENT.md`.
 
 ## License
 
-No license has been granted yet; the private package metadata intentionally says
-`UNLICENSED`. Apache-2.0 for the core/service implementation and a compatible
-ecosystem-specific adapter split are proposed, pending legal approval and an
-actual `LICENSE` file before public distribution.
+Copyright 2026 Starfiniti d.o.o. Licensed under the
+[Apache License 2.0](LICENSE). The standalone adapters are covered by the same
+license; any future adapter that embeds into a copyleft platform must undergo a
+separate compatibility review. See [NOTICE](NOTICE),
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and
+[CONTRIBUTING.md](CONTRIBUTING.md).

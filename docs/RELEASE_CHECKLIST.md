@@ -22,7 +22,7 @@ named reviewer. A green local test suite is necessary but not sufficient.
 - [ ] Data controller and legal reviewers approve the record-class retention/privacy schedule and backup expiry behavior.
 - [ ] Slovenian accountant/tax specialist signs the supported scenario matrix.
 - [ ] A named compliance owner accepts production responsibility.
-- [ ] Final repository and adapter license is approved and a `LICENSE` file is added.
+- [x] Repository and current standalone adapters use Apache-2.0; `LICENSE`, `NOTICE`, dependency inventory and DCO policy are present.
 
 Record unsupported scenarios explicitly. Never describe this software as FURS-certified.
 

@@ -45,7 +45,8 @@ FURS certification or endorsement.
 | Check | Result |
 |---|---|
 | `corepack pnpm check` | 147 passed; 0 failed, skipped or todo; production bundle verifier passed |
-| Secret scan | 233 repository files passed |
+| Secret scan | 239 repository files passed |
+| License check | Canonical Apache-2.0 text, 16 package manifests, notices and runtime-image preservation pass |
 | `corepack pnpm audit --prod --audit-level=high` | No known vulnerabilities |
 | OpenAPI generated artifact | Current and check passes |
 | Generated PHP client | `php -l` passes |
@@ -79,8 +80,5 @@ remain separate release gates.
 6. Complete external security review, SSO/MFA/reverse-proxy deployment and
    named compliance-owner approval; approve the legal retention/privacy schedule
    described in `docs/DATA_RETENTION_PRIVACY.md`.
-7. Approve the final repository/adaptor license and add the corresponding
-   `LICENSE` file before calling the distribution open source.
-
 Until those gates pass, keep `FURS_ENVIRONMENT=test` and do not activate this
 software for production fiscal issuance.

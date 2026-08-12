@@ -2,19 +2,20 @@
   "name": "starfiniti-furs-kit",
   "version": "0.0.0",
   "private": true,
-  "description": "Unofficial foundation for Slovenian FURS invoice fiscalization",
-  "license": "UNLICENSED",
+  "description": "Unofficial open-source Slovenian FURS invoice fiscalization engine",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=24"
   },
   "packageManager": "pnpm@11.21.0",
   "scripts": {
     "build": "tsc -b",
-    "check": "tsc -b && node --test && node scripts/generate-openapi.mjs --check && node scripts/verify-production-layout.mjs && node scripts/check-no-secrets.mjs",
+    "check": "tsc -b && node --test && node scripts/generate-openapi.mjs --check && node scripts/verify-production-layout.mjs && node scripts/check-license.mjs && node scripts/check-no-secrets.mjs",
     "contract:generate": "corepack pnpm build && node scripts/generate-openapi.mjs",
     "release:layout": "node scripts/verify-production-layout.mjs",
     "release:verify": "node scripts/verify-release-evidence.mjs",
     "container:check": "node scripts/check-container-images.mjs",
+    "license:check": "node scripts/check-license.mjs",
     "compliance:check": "node scripts/check-official-sources.mjs",
     "evidence:furs": "node scripts/run-furs-evidence.mjs",
     "evidence:postgres": "corepack pnpm build && node scripts/run-postgres-evidence.mjs",

@@ -43,7 +43,14 @@ Multi-tenant managed service is deferred until key isolation, authorization, aud
 
 ## ADR-005 — Apache-2.0 core; ecosystem-specific adapters separately licensed
 
-**Status:** Proposed pending legal review
+**Status:** Accepted
+**Date:** 2026-08-12
+
+The repository, service, SDK and current standalone adapters are Apache-2.0,
+with copyright held by Starfiniti d.o.o. Contributions use DCO 1.1 sign-off.
+The WooCommerce adapter is a separable HTTP/event integration and contains no
+WordPress dependency or plugin code. Any future adapter embedded into a copyleft
+runtime requires an explicit compatibility decision before implementation.
 
 ## ADR-006 — Exact money as canonical strings and bigint minor units
 

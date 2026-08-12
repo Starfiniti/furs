@@ -6,6 +6,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.json tsconfig.base
 COPY apps ./apps
 COPY packages ./packages
 COPY scripts ./scripts
+COPY LICENSE NOTICE THIRD_PARTY_NOTICES.md ./
 RUN pnpm install --frozen-lockfile \
     && pnpm build \
     && pnpm --filter @starfiniti/furs-api deploy --prod --offline /release/api \
@@ -20,6 +21,7 @@ FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build --chown=node:node /release /app
+COPY --from=build --chown=node:node /app/LICENSE /app/NOTICE /app/THIRD_PARTY_NOTICES.md /app/
 USER node
 EXPOSE 8080
 CMD ["node", "/app/api/dist/main.js"]

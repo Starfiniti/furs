@@ -1,5 +1,14 @@
 # Security model
 
+## Reporting a vulnerability
+
+Use GitHub's private vulnerability-reporting form for this repository. Do not
+open a public issue or include certificates, credentials, invoice data, tax
+numbers, signed tokens, or exploit details in a public channel. Include affected
+commit/version, impact, reproduction steps using synthetic data, and a safe
+contact method. Starfiniti d.o.o. will acknowledge and triage the report through
+the private advisory.
+
 ## Protected assets
 
 Highest-sensitivity assets:
