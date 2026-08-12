@@ -28,6 +28,8 @@ Gate status: evidence automation implemented; external executions pending
   verifier builds portable production-only API/worker/persistence bundles,
   imports their entry points, checks all migrations/assets and rejects internal
   sources, tests, PGlite and the TypeScript compiler.
+- CI compares the reviewed Node and PostgreSQL Docker Hub tag metadata with the
+  pinned manifest digests and fails when either mutable tag is repointed.
 - `release:verify` validates a protected P0-P7 evidence manifest against the
   exact clean commit and refuses unresolved sources, incomplete official FURS
   paths, insufficient load/soak/restore/rotation/drills/alerts, security findings,
@@ -40,8 +42,8 @@ files, never command-line arguments or environment values.
 
 ## Local acceptance evidence
 
-- `corepack pnpm check`: 144 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
-- Secret scan: 230 files passed.
+- `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- Secret scan: 232 files passed.
 - Production dependency audit: no known vulnerabilities.
 - OpenAPI consistency, PHP syntax and four deployment/CI YAML files pass.
 

@@ -18,8 +18,9 @@
 - Fail-closed evidence runners for the FURS test service, real PostgreSQL,
   restored databases, certificate rotation, controlled load and a two-day soak.
 
-Local verification: 123 tests pass with no skips/todos, the 226-file secret scan
-passes, and the production dependency audit reports no known vulnerabilities.
+Local verification: 147 tests pass with no failures, skips or todos, the
+232-file secret scan passes, the production-only bundle layout is verified, and
+the production dependency audit reports no known vulnerabilities.
 
 ## External release gates
 

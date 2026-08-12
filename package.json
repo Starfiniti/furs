@@ -14,6 +14,7 @@
     "contract:generate": "corepack pnpm build && node scripts/generate-openapi.mjs",
     "release:layout": "node scripts/verify-production-layout.mjs",
     "release:verify": "node scripts/verify-release-evidence.mjs",
+    "container:check": "node scripts/check-container-images.mjs",
     "compliance:check": "node scripts/check-official-sources.mjs",
     "evidence:furs": "node scripts/run-furs-evidence.mjs",
     "evidence:postgres": "corepack pnpm build && node scripts/run-postgres-evidence.mjs",

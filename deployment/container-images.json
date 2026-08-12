@@ -7,9 +7,9 @@
       "tagLastUpdated": "2026-08-05T02:39:36.009852Z"
     },
     "postgres": {
-      "reference": "postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3",
-      "source": "https://hub.docker.com/v2/repositories/library/postgres/tags/17.6-bookworm",
-      "tagLastUpdated": "2025-11-04T15:08:53.623448Z"
+      "reference": "postgres:17.10-bookworm@sha256:9b18b78397054fce88a9552e9d5a3ad5bb7fd258c5b3cc1c5028e46373d6ea8f",
+      "source": "https://hub.docker.com/v2/repositories/library/postgres/tags/17.10-bookworm",
+      "tagLastUpdated": "2026-08-05T04:12:01.827085Z"
     }
   }
 }

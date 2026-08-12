@@ -60,7 +60,9 @@ docker compose up --build
 The Node and PostgreSQL base images are pinned to reviewed multi-platform
 manifest digests recorded in `deployment/container-images.json`. Update the tag,
 digest, retrieval metadata and vulnerability evidence together; do not remove
-the digest to obtain a newer image implicitly. The final service image contains
+the digest to obtain a newer image implicitly. `corepack pnpm container:check`
+fails when a reviewed Docker Hub tag is repointed, and CI runs it alongside the
+official-source check. The final service image contains
 three production-only bundles (API, worker and migration/provisioning) and no
 TypeScript compiler, PGlite, repository tests or source tree. The separate
 Docker `evidence` target retains the versioned evidence runner only for the

@@ -227,7 +227,9 @@ a separate non-production Docker target.
 
 The Node and PostgreSQL tags are also pinned to reviewed multi-platform manifest
 digests in `deployment/container-images.json`. Image updates require an explicit
-baseline change and renewed vulnerability evidence.
+baseline change and renewed vulnerability evidence. A networked CI check compares
+the current tag digest and update timestamp with that reviewed baseline so a
+repointed tag cannot become silent dependency drift.
 
 ## ADR-025 — The public contract is executable documentation
 

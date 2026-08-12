@@ -60,9 +60,9 @@ platform admin UX and accountant-approved refund/payment scenario mappings.
 
 ## Current local evidence
 
-- `corepack pnpm check`: 144 passed, 0 failed, 0 skipped, 0 todo; the
+- `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; the
   production-only bundle layout also passes.
-- Secret scan: 230 repository files checked.
+- Secret scan: 232 repository files checked.
 - `corepack pnpm audit --prod --audit-level=high`: no known vulnerabilities.
 - OpenAPI generation/check and PHP syntax validation pass.
 - Compose, Prometheus and GitHub Actions files parse as YAML; Docker runtime

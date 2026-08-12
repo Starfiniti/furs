@@ -44,8 +44,8 @@ FURS certification or endorsement.
 
 | Check | Result |
 |---|---|
-| `corepack pnpm check` | 144 passed; 0 failed, skipped or todo; production bundle verifier passed |
-| Secret scan | 230 repository files passed |
+| `corepack pnpm check` | 147 passed; 0 failed, skipped or todo; production bundle verifier passed |
+| Secret scan | 232 repository files passed |
 | `corepack pnpm audit --prod --audit-level=high` | No known vulnerabilities |
 | OpenAPI generated artifact | Current and check passes |
 | Generated PHP client | `php -l` passes |
