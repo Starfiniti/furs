@@ -43,16 +43,18 @@ files, never command-line arguments or environment values.
 ## Local acceptance evidence
 
 - `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
-- Secret scan: 232 files passed.
+- Secret scan: 233 files passed.
 - Production dependency audit: no known vulnerabilities.
 - OpenAPI consistency, PHP syntax and four deployment/CI YAML files pass.
+- Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
+  integrity rehearsals passed with redacted local evidence.
 
 ## External gates still required
 
-No runner output exists yet because the requested FURS test certificate, Docker
-and a real PostgreSQL server are unavailable on this workstation. The scripts
-are executable controls, not fabricated evidence. Official FURS operations,
-PostgreSQL/container runs, restore, rotation, load and 48-hour soak must be
-executed and reviewed before production approval. The technical retention hold
-is documented, but the data controller/legal retention and privacy schedule also
-requires approval.
+The local PostgreSQL and logical-restore runners have now executed against a
+temporary native PostgreSQL 17.10 server. Their local report is not production
+PITR or named reviewer approval. The requested FURS test certificate and Docker
+remain unavailable. Official FURS operations, container/PITR, rotation, load and
+48-hour soak evidence must still be executed and reviewed before production
+approval. The technical retention hold is documented, but the data
+controller/legal retention and privacy schedule also requires approval.

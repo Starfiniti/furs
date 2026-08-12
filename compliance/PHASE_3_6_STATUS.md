@@ -25,8 +25,10 @@ Terminal results atomically enqueue redacted, hash-checked, HMAC-signed webhooks
 the worker has an alertable database heartbeat. PGlite migrations and repository
 tests pass.
 
-Not yet proven: real multi-connection PostgreSQL locking/crash behavior, legal-window
-drill, production backup/PITR, load target and FURS-backed reconciliation.
+A temporary native PostgreSQL 17.10 run proved multi-connection sequence and
+idempotency concurrency, competing `SKIP LOCKED` claims, stale-lease recovery and
+a separate logical restore. Not yet proven: legal-window drill, production
+backup/PITR, load target and FURS-backed reconciliation.
 
 ## Phase 5 — codes and contract
 
@@ -55,14 +57,16 @@ platform admin UX and accountant-approved refund/payment scenario mappings.
   digest; payment/adaptor policy release is frozen pending the recorded review.
 - FURS test certificate and official environment evidence;
 - Slovenian accountant/tax-specialist scenario signoff;
-- real PostgreSQL/concurrency and operational hardening evidence;
+- reviewed PostgreSQL evidence plus production PITR and operational hardening;
 - security, rotation, restore, soak and load reviews in the release checklist.
 
 ## Current local evidence
 
 - `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; the
   production-only bundle layout also passes.
-- Secret scan: 232 repository files checked.
+- Secret scan: 233 repository files checked.
+- Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
+  integrity rehearsals passed; production PITR remains external.
 - `corepack pnpm audit --prod --audit-level=high`: no known vulnerabilities.
 - OpenAPI generation/check and PHP syntax validation pass.
 - Compose, Prometheus and GitHub Actions files parse as YAML; Docker runtime

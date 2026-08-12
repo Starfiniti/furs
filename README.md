@@ -17,7 +17,7 @@ validation, business premises, invoice workflows, PostgreSQL idempotency,
 outbox/retries/audit, REST intake, receipt codes and adapter replay.
 
 The current local gate is 147 passing tests with no failures, skips or todos;
-generated contracts and the 232-file repository secret scan pass, and the production
+generated contracts and the 233-file repository secret scan pass, and the production
 dependency audit reports no known vulnerabilities.
 
 Production activation remains blocked until the requested FURS test certificate

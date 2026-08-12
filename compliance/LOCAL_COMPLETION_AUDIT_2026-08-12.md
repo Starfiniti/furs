@@ -45,22 +45,25 @@ FURS certification or endorsement.
 | Check | Result |
 |---|---|
 | `corepack pnpm check` | 147 passed; 0 failed, skipped or todo; production bundle verifier passed |
-| Secret scan | 232 repository files passed |
+| Secret scan | 233 repository files passed |
 | `corepack pnpm audit --prod --audit-level=high` | No known vulnerabilities |
 | OpenAPI generated artifact | Current and check passes |
 | Generated PHP client | `php -l` passes |
 | Compose/alerts/CI YAML | Parses successfully |
 | Official source check | Core technical/schema/law sources unchanged; SPOT online-retail change remains under documented human review |
+| Native PostgreSQL 17.10 | 128 unique allocations, 64-way idempotency, exclusive claims and crash recovery passed |
+| Separate logical restore | Read-only high-water, payload-hash, migration and referential checks passed |
 
 The source checker therefore intentionally remains non-green for the affected
 online-retail payment-policy release path. Its failure is a retained compliance
 freeze, not a failed core protocol test.
 
 Docker is not installed on this workstation, so image build and
-`docker compose config` runtime interpolation were not executed. A real
-PostgreSQL server is also unavailable. Repository tests use PGlite, and the
-dedicated real-PostgreSQL evidence runner is implemented but cannot substitute
-evidence until executed against PostgreSQL 17.
+`docker compose config` runtime interpolation were not executed. A temporary
+native PostgreSQL 17.10 server was executed successfully; its synthetic local
+concurrency and logical-restore results are recorded in
+`LOCAL_POSTGRES_EVIDENCE_2026-08-12.md`. Production PITR and reviewed evidence
+remain separate release gates.
 
 ## External and human gates still blocking production
 
@@ -71,8 +74,8 @@ evidence until executed against PostgreSQL 17.
    `SOURCE_CHANGE_REVIEW_2026-08-12.md`; only then accept its new digest.
 4. Obtain accountant/tax-specialist signoff for payment, refund/correction and
    supported-scenario policy.
-5. Run real PostgreSQL concurrency/crash, Docker/container scan, load, restore,
-   rotation and two-day soak evidence.
+5. Preserve/review formal PostgreSQL evidence and run production PITR,
+   Docker/container scan, load, rotation and two-day soak evidence.
 6. Complete external security review, SSO/MFA/reverse-proxy deployment and
    named compliance-owner approval; approve the legal retention/privacy schedule
    described in `docs/DATA_RETENTION_PRIVACY.md`.

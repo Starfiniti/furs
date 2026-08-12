@@ -19,8 +19,13 @@
   restored databases, certificate rotation, controlled load and a two-day soak.
 
 Local verification: 147 tests pass with no failures, skips or todos, the
-232-file secret scan passes, the production-only bundle layout is verified, and
+233-file secret scan passes, the production-only bundle layout is verified, and
 the production dependency audit reports no known vulnerabilities.
+
+A native temporary PostgreSQL 17.10 run passed 128 unique concurrent sequence
+allocations, 64-way idempotent reservation, competing worker claims and crash
+recovery. A separate logical restore passed the read-only integrity verifier;
+see `compliance/LOCAL_POSTGRES_EVIDENCE_2026-08-12.md`.
 
 ## External release gates
 
@@ -31,8 +36,8 @@ the production dependency audit reports no known vulnerabilities.
 - Obtain written accountant/tax-specialist approval for the scenario matrix.
 - Review the changed 12 August 2026 SPOT online-retail page digest before
   accepting a new baseline or releasing payment/adaptor policy.
-- Run real multi-connection PostgreSQL concurrency, backup/restore, soak, load,
-  certificate rotation, container vulnerability and external security tests.
+- Preserve and review formal PostgreSQL evidence, then complete production PITR,
+  Docker/container, soak, load, certificate rotation and external security tests.
 - Approve and add the final repository/adaptor license before public release.
 
 The repository is currently private/unlicensed in package metadata. The proposed
