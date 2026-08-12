@@ -1,0 +1,7 @@
+{
+  "name": "@starfiniti/furs-console", "version": "0.0.0", "private": true, "type": "module",
+  "main": "./dist/index.js", "types": "./dist/index.d.ts",
+  "files": ["dist", "public"],
+  "scripts": { "build": "tsc -b", "test": "node --test test/*.test.mjs" },
+  "dependencies": { "fastify": "5.11.3" }
+}

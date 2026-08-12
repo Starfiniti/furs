@@ -1,0 +1,6 @@
+{
+  "name": "@starfiniti/furs-adapter-medusa", "version": "0.0.0", "private": true, "type": "module",
+  "main": "./dist/index.js", "types": "./dist/index.d.ts", "scripts": { "build": "tsc -b", "test": "node --test test/*.test.mjs" },
+  "files": ["dist"],
+  "dependencies": { "@starfiniti/furs-service-contract": "workspace:*" }, "devDependencies": { "@starfiniti/furs-testkit": "workspace:*" }
+}

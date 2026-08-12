@@ -1,0 +1,47 @@
+name: starfiniti-furs-evidence
+
+services:
+  postgres-evidence:
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    restart: "no"
+    environment:
+      POSTGRES_DB: furs_evidence
+      POSTGRES_USER: furs_evidence_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/database-password
+    volumes:
+      - ${FURS_EVIDENCE_DB_PASSWORD_FILE:?set evidence database password file}:/run/secrets/database-password:ro
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=1g
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U furs_evidence_owner -d furs_evidence]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    networks: [evidence]
+
+  postgres-evidence-runner:
+    build:
+      context: .
+      target: evidence
+    image: starfiniti/furs-service:evidence
+    command: [node, scripts/run-postgres-evidence.mjs]
+    restart: "no"
+    read_only: true
+    init: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:rw,noexec,nosuid,size=16m]
+    environment:
+      DATABASE_URL: postgresql://furs_evidence_owner@postgres-evidence:5432/furs_evidence
+      DATABASE_PASSWORD_FILE: /run/secrets/database-password
+      FURS_EVIDENCE_DATABASE_CONFIRMATION: furs_evidence
+    volumes:
+      - ${FURS_EVIDENCE_DB_PASSWORD_FILE:?set evidence database password file}:/run/secrets/database-password:ro
+    depends_on:
+      postgres-evidence:
+        condition: service_healthy
+    networks: [evidence]
+
+networks:
+  evidence:
+    internal: true

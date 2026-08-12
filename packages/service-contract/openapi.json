@@ -1,0 +1,3183 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Starfiniti FURS API",
+    "version": "0.1.0",
+    "description": "Unofficial self-hosted Slovenian FURS fiscalization service."
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/v1/fiscal-invoices": {
+      "post": {
+        "operationId": "createFiscalInvoice",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FiscalInvoiceRequest"
+              },
+              "example": {
+                "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+                "taxNumber": "12345678",
+                "kind": "STANDARD",
+                "businessPremiseId": "TRGOVINA1",
+                "electronicDeviceId": "BLAG1",
+                "issueLocalTime": "2026-08-12T12:34:56",
+                "messageId": "4e64a93a-40fa-4c02-afb1-488534b85e4c",
+                "numberingStructure": "B",
+                "invoiceAmount": "12.20",
+                "paymentAmount": "12.20",
+                "taxesPerSeller": [
+                  {
+                    "vat": [
+                      {
+                        "rate": "22.00",
+                        "taxableAmount": "10.00",
+                        "taxAmount": "2.20"
+                      }
+                    ]
+                  }
+                ],
+                "operator": {
+                  "kind": "slovenian",
+                  "taxNumber": "87654321"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Durably accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalDocument"
+                },
+                "example": {
+                  "id": "a10dd547-4497-4384-9ed8-3ce39b0ee5d6",
+                  "operationClass": "FISCAL_INVOICE",
+                  "kind": "STANDARD",
+                  "status": "CONFIRMED",
+                  "businessPremiseId": "TRGOVINA1",
+                  "electronicDeviceId": "BLAG1",
+                  "invoiceSequence": "42",
+                  "issueLocalTime": "2026-08-12T12:34:56",
+                  "messageId": "4e64a93a-40fa-4c02-afb1-488534b85e4c",
+                  "payloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "schemaSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "zoi": "1da0adb4cc87fd85f909e0acb99a2aa4",
+                  "eor": "b5f1c310-3dea-4331-82f8-d2dc72d9b018",
+                  "confirmedAt": "2026-08-12T10:34:57.000Z",
+                  "createdAt": "2026-08-12T10:34:56.000Z",
+                  "updatedAt": "2026-08-12T10:34:57.000Z",
+                  "subsequentSubmit": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fiscal-invoices/{id}": {
+      "get": {
+        "operationId": "getFiscalInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Fiscal document",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalDocument"
+                },
+                "example": {
+                  "id": "a10dd547-4497-4384-9ed8-3ce39b0ee5d6",
+                  "operationClass": "FISCAL_INVOICE",
+                  "kind": "STANDARD",
+                  "status": "CONFIRMED",
+                  "businessPremiseId": "TRGOVINA1",
+                  "electronicDeviceId": "BLAG1",
+                  "invoiceSequence": "42",
+                  "issueLocalTime": "2026-08-12T12:34:56",
+                  "messageId": "4e64a93a-40fa-4c02-afb1-488534b85e4c",
+                  "payloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "schemaSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                  "zoi": "1da0adb4cc87fd85f909e0acb99a2aa4",
+                  "eor": "b5f1c310-3dea-4331-82f8-d2dc72d9b018",
+                  "confirmedAt": "2026-08-12T10:34:57.000Z",
+                  "createdAt": "2026-08-12T10:34:56.000Z",
+                  "updatedAt": "2026-08-12T10:34:57.000Z",
+                  "subsequentSubmit": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/fiscal-invoices/{id}/retry": {
+      "post": {
+        "operationId": "retryFiscalInvoice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Retry requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetryAcceptedResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/business-premises": {
+      "post": {
+        "operationId": "upsertBusinessPremise",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessPremiseRequest"
+              },
+              "example": {
+                "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+                "taxNumber": "12345678",
+                "businessPremiseId": "MOBILNA1",
+                "lifecycleStatus": "REGISTERED",
+                "messageId": "bf4dc2cf-c044-45f2-bc82-1746fc492b0d",
+                "sentAt": "2026-08-12T12:30:00",
+                "location": {
+                  "kind": "movable",
+                  "premiseType": "C"
+                },
+                "validityDate": "2026-08-12",
+                "softwareSuppliers": [
+                  {
+                    "kind": "slovenian",
+                    "taxNumber": "12345678"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Premise durably accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/business-premises/{id}": {
+      "patch": {
+        "operationId": "updateBusinessPremise",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 8,
+              "maxLength": 128
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BusinessPremiseRequest"
+              },
+              "example": {
+                "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+                "taxNumber": "12345678",
+                "businessPremiseId": "MOBILNA1",
+                "lifecycleStatus": "REGISTERED",
+                "messageId": "bf4dc2cf-c044-45f2-bc82-1746fc492b0d",
+                "sentAt": "2026-08-12T12:30:00",
+                "location": {
+                  "kind": "movable",
+                  "premiseType": "C"
+                },
+                "validityDate": "2026-08-12",
+                "softwareSuppliers": [
+                  {
+                    "kind": "slovenian",
+                    "taxNumber": "12345678"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Premise update durably accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FiscalDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/electronic-devices/{id}": {
+      "put": {
+        "operationId": "configureElectronicDevice",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 20
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ElectronicDeviceRequest"
+              },
+              "example": {
+                "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+                "businessPremiseId": "TRGOVINA1",
+                "operational": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Electronic device configured",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ElectronicDeviceResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/reconciliation/run": {
+      "post": {
+        "operationId": "runReconciliation",
+        "responses": {
+          "202": {
+            "description": "Reconciliation requested",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operator/summary": {
+      "get": {
+        "operationId": "getOperatorSummary",
+        "responses": {
+          "200": {
+            "description": "Redacted operational summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorSummaryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/operator/documents": {
+      "get": {
+        "operationId": "listOperatorDocuments",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "READY",
+                "SENDING",
+                "CONFIRMED",
+                "ISSUED_WITHOUT_EOR",
+                "RETRY_PENDING",
+                "REJECTED",
+                "MANUAL_REVIEW",
+                "REVERSED"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 500,
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Redacted fiscal documents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperatorDocumentsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/furs/echo": {
+      "post": {
+        "operationId": "fursEcho",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EchoResponse"
+              },
+              "example": {
+                "value": "connectivity-check"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Echo response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EchoResponse"
+                },
+                "example": {
+                  "value": "connectivity-check"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "getOpenApiDocument",
+        "responses": {
+          "200": {
+            "description": "OpenAPI 3.1 document"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "getPrometheusMetrics",
+        "responses": {
+          "200": {
+            "description": "Redacted Prometheus metrics",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/system/info": {
+      "get": {
+        "operationId": "getSystemInfo",
+        "responses": {
+          "200": {
+            "description": "Configured environment and legal-entity identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SystemInfoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Fiscalize permission required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Idempotency or state conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal service failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": {
+                    "code": "FURS_SCHEMA_VALIDATION",
+                    "message": "Request does not satisfy the fiscal service contract",
+                    "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/live": {
+      "get": {
+        "operationId": "getLiveHealth",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Process is live",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LiveHealthResponse"
+                },
+                "example": {
+                  "status": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "operationId": "getReadyHealth",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Dependencies ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyHealthResponse"
+                },
+                "example": {
+                  "status": "ready"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A dependency is not ready",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadyHealthResponse"
+                },
+                "example": {
+                  "status": "not-ready",
+                  "failed": [
+                    "database"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Use a read credential for GET/HEAD routes or a distinct fiscalize/write credential for all mutating routes."
+      }
+    },
+    "schemas": {
+      "FiscalInvoiceRequest": {
+        "$id": "FiscalInvoiceRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "legalEntityId",
+          "taxNumber",
+          "kind",
+          "businessPremiseId",
+          "electronicDeviceId",
+          "issueLocalTime",
+          "messageId",
+          "numberingStructure",
+          "invoiceAmount",
+          "paymentAmount",
+          "taxesPerSeller",
+          "operator"
+        ],
+        "properties": {
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "taxNumber": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{7}$"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "STANDARD",
+              "CORRECTION",
+              "CANCELLATION"
+            ]
+          },
+          "correctionOfDocumentId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "businessPremiseId": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z]{1,20}$"
+          },
+          "electronicDeviceId": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z]{1,20}$"
+          },
+          "issueLocalTime": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "messageId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "numberingStructure": {
+            "type": "string",
+            "enum": [
+              "B",
+              "C"
+            ]
+          },
+          "customerVatNumber": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 20
+          },
+          "invoiceAmount": {
+            "type": "string",
+            "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+          },
+          "returnsAmount": {
+            "type": "string",
+            "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+          },
+          "paymentAmount": {
+            "type": "string",
+            "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+          },
+          "taxesPerSeller": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "sellerTaxNumber": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{7}$"
+                },
+                "vat": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 1000,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "rate",
+                      "taxableAmount",
+                      "taxAmount"
+                    ],
+                    "properties": {
+                      "rate": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      },
+                      "taxableAmount": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      },
+                      "taxAmount": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      }
+                    }
+                  }
+                },
+                "flatRateCompensation": {
+                  "type": "array",
+                  "minItems": 1,
+                  "maxItems": 1000,
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "rate",
+                      "taxableAmount",
+                      "amount"
+                    ],
+                    "properties": {
+                      "rate": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      },
+                      "taxableAmount": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      },
+                      "amount": {
+                        "type": "string",
+                        "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                      }
+                    }
+                  }
+                },
+                "otherTaxesAmount": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                },
+                "exemptVatTaxableAmount": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                },
+                "reverseVatTaxableAmount": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                },
+                "nontaxableAmount": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                },
+                "specialTaxRulesAmount": {
+                  "type": "string",
+                  "pattern": "^-?(?:0|[1-9][0-9]*)\\.[0-9]{2}$"
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "vat"
+                  ]
+                },
+                {
+                  "required": [
+                    "flatRateCompensation"
+                  ]
+                },
+                {
+                  "required": [
+                    "otherTaxesAmount"
+                  ]
+                },
+                {
+                  "required": [
+                    "exemptVatTaxableAmount"
+                  ]
+                },
+                {
+                  "required": [
+                    "reverseVatTaxableAmount"
+                  ]
+                },
+                {
+                  "required": [
+                    "nontaxableAmount"
+                  ]
+                },
+                {
+                  "required": [
+                    "specialTaxRulesAmount"
+                  ]
+                }
+              ]
+            }
+          },
+          "operator": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "slovenian",
+                  "foreign",
+                  "self-service"
+                ]
+              },
+              "taxNumber": {
+                "type": "string",
+                "pattern": "^[1-9][0-9]{7}$"
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "foreign"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "not": {
+                    "required": [
+                      "taxNumber"
+                    ]
+                  }
+                },
+                "else": {
+                  "required": [
+                    "taxNumber"
+                  ]
+                }
+              }
+            ]
+          },
+          "subsequentSubmit": {
+            "type": "boolean"
+          },
+          "specialNotes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "kind": {
+                  "const": "STANDARD"
+                }
+              }
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "correctionOfDocumentId"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "correctionOfDocumentId"
+              ]
+            }
+          }
+        ],
+        "examples": [
+          {
+            "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+            "taxNumber": "12345678",
+            "kind": "STANDARD",
+            "businessPremiseId": "TRGOVINA1",
+            "electronicDeviceId": "BLAG1",
+            "issueLocalTime": "2026-08-12T12:34:56",
+            "messageId": "4e64a93a-40fa-4c02-afb1-488534b85e4c",
+            "numberingStructure": "B",
+            "invoiceAmount": "12.20",
+            "paymentAmount": "12.20",
+            "taxesPerSeller": [
+              {
+                "vat": [
+                  {
+                    "rate": "22.00",
+                    "taxableAmount": "10.00",
+                    "taxAmount": "2.20"
+                  }
+                ]
+              }
+            ],
+            "operator": {
+              "kind": "slovenian",
+              "taxNumber": "87654321"
+            }
+          }
+        ]
+      },
+      "BusinessPremiseRequest": {
+        "$id": "BusinessPremiseRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "legalEntityId",
+          "taxNumber",
+          "businessPremiseId",
+          "lifecycleStatus",
+          "messageId",
+          "sentAt",
+          "location",
+          "validityDate",
+          "softwareSuppliers"
+        ],
+        "properties": {
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "taxNumber": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]{7}$"
+          },
+          "businessPremiseId": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z]{1,20}$"
+          },
+          "lifecycleStatus": {
+            "type": "string",
+            "enum": [
+              "REGISTERED",
+              "CLOSED"
+            ]
+          },
+          "messageId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "sentAt": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}$"
+          },
+          "location": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "movable",
+                  "real-estate"
+                ]
+              },
+              "premiseType": {
+                "type": "string",
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ]
+              },
+              "cadastralNumber": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9999
+              },
+              "buildingNumber": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 99999
+              },
+              "buildingSectionNumber": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9999
+              },
+              "address": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "street",
+                  "houseNumber",
+                  "community",
+                  "city",
+                  "postalCode"
+                ],
+                "properties": {
+                  "street": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "houseNumber": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10
+                  },
+                  "houseNumberAdditional": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10
+                  },
+                  "community": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "city": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "postalCode": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}$"
+                  }
+                }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "kind": {
+                      "const": "movable"
+                    }
+                  },
+                  "required": [
+                    "kind"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "premiseType"
+                  ]
+                },
+                "else": {
+                  "required": [
+                    "cadastralNumber",
+                    "buildingNumber",
+                    "buildingSectionNumber",
+                    "address"
+                  ]
+                }
+              }
+            ]
+          },
+          "validityDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "softwareSuppliers": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 1000,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "slovenian",
+                    "foreign"
+                  ]
+                },
+                "taxNumber": {
+                  "type": "string",
+                  "pattern": "^[1-9][0-9]{7}$"
+                },
+                "nameAndAddress": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "kind": {
+                        "const": "slovenian"
+                      }
+                    },
+                    "required": [
+                      "kind"
+                    ]
+                  },
+                  "then": {
+                    "required": [
+                      "taxNumber"
+                    ]
+                  },
+                  "else": {
+                    "required": [
+                      "nameAndAddress"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "specialNotes": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "examples": [
+          {
+            "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+            "taxNumber": "12345678",
+            "businessPremiseId": "MOBILNA1",
+            "lifecycleStatus": "REGISTERED",
+            "messageId": "bf4dc2cf-c044-45f2-bc82-1746fc492b0d",
+            "sentAt": "2026-08-12T12:30:00",
+            "location": {
+              "kind": "movable",
+              "premiseType": "C"
+            },
+            "validityDate": "2026-08-12",
+            "softwareSuppliers": [
+              {
+                "kind": "slovenian",
+                "taxNumber": "12345678"
+              }
+            ]
+          }
+        ]
+      },
+      "ElectronicDeviceRequest": {
+        "$id": "ElectronicDeviceRequest",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "legalEntityId",
+          "businessPremiseId",
+          "operational"
+        ],
+        "properties": {
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "businessPremiseId": {
+            "type": "string",
+            "pattern": "^[0-9A-Za-z]{1,20}$"
+          },
+          "operational": {
+            "type": "boolean"
+          }
+        },
+        "examples": [
+          {
+            "legalEntityId": "019ff57a-f30d-7290-9bb9-951bed760201",
+            "businessPremiseId": "TRGOVINA1",
+            "operational": true
+          }
+        ]
+      },
+      "FiscalDocument": {
+        "$id": "FiscalDocument",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "operationClass",
+          "kind",
+          "status",
+          "businessPremiseId",
+          "issueLocalTime",
+          "messageId",
+          "payloadSha256",
+          "schemaSha256",
+          "createdAt",
+          "updatedAt",
+          "subsequentSubmit"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "operationClass": {
+            "type": "string",
+            "enum": [
+              "FISCAL_INVOICE",
+              "BUSINESS_PREMISE"
+            ]
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "STANDARD",
+              "CORRECTION",
+              "CANCELLATION",
+              "PREMISE"
+            ]
+          },
+          "correctionOfDocumentId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "READY",
+              "SENDING",
+              "CONFIRMED",
+              "ISSUED_WITHOUT_EOR",
+              "RETRY_PENDING",
+              "REJECTED",
+              "MANUAL_REVIEW",
+              "REVERSED"
+            ]
+          },
+          "businessPremiseId": {
+            "type": "string"
+          },
+          "electronicDeviceId": {
+            "type": "string"
+          },
+          "invoiceSequence": {
+            "type": "string",
+            "pattern": "^[1-9]\\d*$"
+          },
+          "issueLocalTime": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "payloadSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "schemaSha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "zoi": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{32}$"
+          },
+          "eor": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "confirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "subsequentSubmit": {
+            "type": "boolean"
+          }
+        },
+        "examples": [
+          {
+            "id": "a10dd547-4497-4384-9ed8-3ce39b0ee5d6",
+            "operationClass": "FISCAL_INVOICE",
+            "kind": "STANDARD",
+            "status": "CONFIRMED",
+            "businessPremiseId": "TRGOVINA1",
+            "electronicDeviceId": "BLAG1",
+            "invoiceSequence": "42",
+            "issueLocalTime": "2026-08-12T12:34:56",
+            "messageId": "4e64a93a-40fa-4c02-afb1-488534b85e4c",
+            "payloadSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "schemaSha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "zoi": "1da0adb4cc87fd85f909e0acb99a2aa4",
+            "eor": "b5f1c310-3dea-4331-82f8-d2dc72d9b018",
+            "confirmedAt": "2026-08-12T10:34:57.000Z",
+            "createdAt": "2026-08-12T10:34:56.000Z",
+            "updatedAt": "2026-08-12T10:34:57.000Z",
+            "subsequentSubmit": false
+          }
+        ]
+      },
+      "ErrorResponse": {
+        "$id": "ErrorResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "message",
+              "correlationId"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "pattern": "^[A-Z0-9_:-]{1,100}$"
+              },
+              "message": {
+                "type": "string",
+                "maxLength": 500
+              },
+              "correlationId": {
+                "type": "string",
+                "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+              }
+            }
+          }
+        },
+        "examples": [
+          {
+            "error": {
+              "code": "FURS_SCHEMA_VALIDATION",
+              "message": "Request does not satisfy the fiscal service contract",
+              "correlationId": "8b1d74bc-d132-46a0-81fa-b0c07bb8e557"
+            }
+          }
+        ]
+      },
+      "RetryAcceptedResponse": {
+        "$id": "RetryAcceptedResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "const": "accepted"
+          }
+        }
+      },
+      "ReconciliationResponse": {
+        "$id": "ReconciliationResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "queued"
+        ],
+        "properties": {
+          "queued": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "ElectronicDeviceResponse": {
+        "$id": "ElectronicDeviceResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "operational"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "operational": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EchoResponse": {
+        "$id": "EchoResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value"
+        ],
+        "properties": {
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        }
+      },
+      "SystemInfoResponse": {
+        "$id": "SystemInfoResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "environment",
+          "legalEntityId"
+        ],
+        "properties": {
+          "environment": {
+            "type": "string",
+            "enum": [
+              "test",
+              "production"
+            ]
+          },
+          "legalEntityId": {
+            "type": "string",
+            "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          }
+        }
+      },
+      "OperatorSummaryResponse": {
+        "$id": "OperatorSummaryResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "documentsByStatus",
+          "activeOutboxJobs"
+        ],
+        "properties": {
+          "documentsByStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "activeOutboxJobs": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "oldestActiveOutboxAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "oldestUnconfirmedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workerLastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OperatorDocumentsResponse": {
+        "$id": "OperatorDocumentsResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "documents"
+        ],
+        "properties": {
+          "documents": {
+            "type": "array",
+            "maxItems": 500,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "operationClass",
+                "kind",
+                "status",
+                "businessPremiseId",
+                "issueLocalTime",
+                "messageId",
+                "payloadSha256",
+                "schemaSha256",
+                "createdAt",
+                "updatedAt",
+                "subsequentSubmit"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                "operationClass": {
+                  "type": "string",
+                  "enum": [
+                    "FISCAL_INVOICE",
+                    "BUSINESS_PREMISE"
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "STANDARD",
+                    "CORRECTION",
+                    "CANCELLATION",
+                    "PREMISE"
+                  ]
+                },
+                "correctionOfDocumentId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "DRAFT",
+                    "READY",
+                    "SENDING",
+                    "CONFIRMED",
+                    "ISSUED_WITHOUT_EOR",
+                    "RETRY_PENDING",
+                    "REJECTED",
+                    "MANUAL_REVIEW",
+                    "REVERSED"
+                  ]
+                },
+                "businessPremiseId": {
+                  "type": "string"
+                },
+                "electronicDeviceId": {
+                  "type": "string"
+                },
+                "invoiceSequence": {
+                  "type": "string",
+                  "pattern": "^[1-9]\\d*$"
+                },
+                "issueLocalTime": {
+                  "type": "string"
+                },
+                "messageId": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                "payloadSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "schemaSha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "zoi": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{32}$"
+                },
+                "eor": {
+                  "type": "string",
+                  "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+                },
+                "confirmedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "subsequentSubmit": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      },
+      "LiveHealthResponse": {
+        "$id": "LiveHealthResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "const": "ok"
+          }
+        }
+      },
+      "ReadyHealthResponse": {
+        "$id": "ReadyHealthResponse",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ready",
+              "not-ready"
+            ]
+          },
+          "failed": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "const": "not-ready"
+                }
+              },
+              "required": [
+                "status"
+              ]
+            },
+            "then": {
+              "type": "object",
+              "required": [
+                "failed"
+              ]
+            },
+            "else": {
+              "type": "object",
+              "not": {
+                "type": "object",
+                "required": [
+                  "failed"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

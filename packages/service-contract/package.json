@@ -1,0 +1,12 @@
+{
+  "name": "@starfiniti/furs-service-contract",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist", "openapi.json", "generated"],
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "scripts": { "build": "tsc -b", "test": "node --test test/*.test.mjs" },
+  "devDependencies": { "ajv": "8.20.0" }
+}

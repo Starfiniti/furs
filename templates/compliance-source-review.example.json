@@ -1,0 +1,13 @@
+{
+  "reviewedBy": "replace-with-named-human-reviewer",
+  "reviewedAt": "2026-08-12",
+  "sources": [
+    { "sourceId": "furs-developer-index", "sha256": "4d83b8d63434d9500f5c14b84e72392158b06d0fe4dfd6bf0038e195d57ac7d8" },
+    { "sourceId": "furs-tech-spec-3-2", "sha256": "7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547" },
+    { "sourceId": "furs-json-schema-v1", "sha256": "6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd" },
+    { "sourceId": "furs-json-schema-batch-v1", "sha256": "01cc186582dcc00815726964eaafc5b22f8ac012f2cc991197d453a1aef7c6e4" },
+    { "sourceId": "zdavpr", "sha256": "f3e1e07c4ad8b64b50283896ca9f26ec10bb3164f3fca3a9931f71eb81b3fa58" },
+    { "sourceId": "zdavpr-rules", "sha256": "dd9ceb3451f643c68e7c88bb3d65ed0bfd3e627c1490444c8d704f7dc671daf7" },
+    { "sourceId": "spot-fiscal-guidance", "sha256": "bac5c81a45144587691eba7213ced3d2fdbf8e822c4b30ba04ad144821f80386" }
+  ]
+}

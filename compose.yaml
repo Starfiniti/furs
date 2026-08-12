@@ -1,0 +1,149 @@
+name: starfiniti-furs
+
+x-furs-service: &furs-service
+  build: .
+  image: starfiniti/furs-service:local
+  restart: unless-stopped
+  read_only: true
+  init: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  tmpfs: [/tmp:rw,noexec,nosuid,size=32m]
+  environment: &furs-environment
+    DATABASE_URL: postgresql://furs_api_login@postgres:5432/furs
+    DATABASE_PASSWORD_FILE: /run/secrets/furs-api-database-password
+    FURS_LEGAL_ENTITY_ID: ${FURS_LEGAL_ENTITY_ID:?set provisioned legal entity UUID}
+    FURS_ENVIRONMENT: ${FURS_ENVIRONMENT:-test}
+    FURS_CERTIFICATE_PATH: /run/secrets/furs-certificate.p12
+    FURS_CERTIFICATE_PASSPHRASE_FILE: /run/secrets/furs-certificate-passphrase
+    FURS_INVOICE_SCHEMA_PATH: /run/schemas/FiscalVerificationSchema.json
+    FURS_INVOICE_SCHEMA_SHA256: ${FURS_INVOICE_SCHEMA_SHA256:?set reviewed invoice schema digest}
+    FURS_RESPONSE_SCHEMA_PATH: /run/schemas/FiscalVerificationSchema.json
+    FURS_RESPONSE_SCHEMA_SHA256: ${FURS_RESPONSE_SCHEMA_SHA256:?set reviewed response schema digest}
+    FURS_SERVER_CA_PATHS_JSON: '["/run/trust/furs-server-ca.pem"]'
+    FURS_RESPONSE_CA_PATHS_JSON: '["/run/trust/furs-response-ca.pem"]'
+    FURS_MAX_CLOCK_DRIFT_MS: ${FURS_MAX_CLOCK_DRIFT_MS:-5000}
+    FURS_CERTIFICATE_MINIMUM_DAYS: ${FURS_CERTIFICATE_MINIMUM_DAYS:-14}
+    FURS_RUN_MIGRATIONS: "false"
+  volumes:
+    - ${FURS_CERTIFICATE_FILE:?set certificate file}:/run/secrets/furs-certificate.p12:ro
+    - ${FURS_CERTIFICATE_PASSPHRASE_FILE:?set passphrase file}:/run/secrets/furs-certificate-passphrase:ro
+    - ${FURS_API_DB_PASSWORD_FILE:?set API database password file}:/run/secrets/furs-api-database-password:ro
+    - ${FURS_SCHEMA_FILE:?set official schema file}:/run/schemas/FiscalVerificationSchema.json:ro
+    - ${FURS_SERVER_CA_FILE:?set server CA file}:/run/trust/furs-server-ca.pem:ro
+    - ${FURS_RESPONSE_CA_FILE:?set response CA file}:/run/trust/furs-response-ca.pem:ro
+  depends_on:
+    provision:
+      condition: service_completed_successfully
+  networks: [furs]
+
+services:
+  postgres:
+    image: postgres:17.6-bookworm@sha256:f3bd19c606e442c3d7bdfa8002e03fe260a1023351e0ea4598032022b68dd6e3
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: furs
+      POSTGRES_USER: furs_owner
+      POSTGRES_PASSWORD_FILE: /run/secrets/furs-owner-database-password
+      FURS_API_DB_PASSWORD_FILE: /run/secrets/furs-api-database-password
+      FURS_WORKER_DB_PASSWORD_FILE: /run/secrets/furs-worker-database-password
+    volumes:
+      - furs-postgres:/var/lib/postgresql/data
+      - ./deployment/postgres/init-roles.sh:/docker-entrypoint-initdb.d/10-furs-roles.sh:ro
+      - ${FURS_OWNER_DB_PASSWORD_FILE:?set owner database password file}:/run/secrets/furs-owner-database-password:ro
+      - ${FURS_API_DB_PASSWORD_FILE:?set API database password file}:/run/secrets/furs-api-database-password:ro
+      - ${FURS_WORKER_DB_PASSWORD_FILE:?set worker database password file}:/run/secrets/furs-worker-database-password:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U furs_owner -d furs]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [furs]
+
+  migrate:
+    build: .
+    image: starfiniti/furs-service:local
+    command: [node, /app/persistence/dist/migrate.js]
+    restart: "no"
+    read_only: true
+    environment:
+      DATABASE_URL: postgresql://furs_owner@postgres:5432/furs
+      DATABASE_PASSWORD_FILE: /run/secrets/furs-owner-database-password
+    volumes:
+      - ${FURS_OWNER_DB_PASSWORD_FILE:?set owner database password file}:/run/secrets/furs-owner-database-password:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [furs]
+
+  provision:
+    build: .
+    image: starfiniti/furs-service:local
+    command: [node, /app/persistence/dist/provision.js]
+    restart: "no"
+    read_only: true
+    environment:
+      DATABASE_URL: postgresql://furs_owner@postgres:5432/furs
+      DATABASE_PASSWORD_FILE: /run/secrets/furs-owner-database-password
+      FURS_LEGAL_ENTITY_ID: ${FURS_LEGAL_ENTITY_ID:?set provisioned legal entity UUID}
+      FURS_LEGAL_ENTITY_NAME: ${FURS_LEGAL_ENTITY_NAME:-Starfiniti d.o.o.}
+      FURS_LEGAL_ENTITY_TAX_NUMBER_FILE: /run/secrets/furs-legal-entity-tax-number
+      FURS_COMPLIANCE_SOURCE_MANIFEST_PATH: /run/config/compliance-source-review.json
+    volumes:
+      - ${FURS_OWNER_DB_PASSWORD_FILE:?set owner database password file}:/run/secrets/furs-owner-database-password:ro
+      - ${FURS_LEGAL_ENTITY_TAX_NUMBER_FILE:?set legal entity tax-number file}:/run/secrets/furs-legal-entity-tax-number:ro
+      - ${FURS_COMPLIANCE_SOURCE_MANIFEST_FILE:?set reviewed compliance source manifest}:/run/config/compliance-source-review.json:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [furs]
+
+  api:
+    <<: *furs-service
+    command: [node, /app/api/dist/main.js]
+    environment:
+      <<: *furs-environment
+      FURS_API_HOST: 0.0.0.0
+      FURS_API_PORT: 8080
+      FURS_API_READ_TOKEN_FILE: /run/secrets/furs-api-read-token
+      FURS_API_WRITE_TOKEN_FILE: /run/secrets/furs-api-write-token
+    volumes:
+      - ${FURS_CERTIFICATE_FILE:?set certificate file}:/run/secrets/furs-certificate.p12:ro
+      - ${FURS_CERTIFICATE_PASSPHRASE_FILE:?set passphrase file}:/run/secrets/furs-certificate-passphrase:ro
+      - ${FURS_API_READ_TOKEN_FILE:?set API read token file}:/run/secrets/furs-api-read-token:ro
+      - ${FURS_API_WRITE_TOKEN_FILE:?set API write token file}:/run/secrets/furs-api-write-token:ro
+      - ${FURS_API_DB_PASSWORD_FILE:?set API database password file}:/run/secrets/furs-api-database-password:ro
+      - ${FURS_SCHEMA_FILE:?set official schema file}:/run/schemas/FiscalVerificationSchema.json:ro
+      - ${FURS_SERVER_CA_FILE:?set server CA file}:/run/trust/furs-server-ca.pem:ro
+      - ${FURS_RESPONSE_CA_FILE:?set response CA file}:/run/trust/furs-response-ca.pem:ro
+    ports: ["127.0.0.1:${FURS_API_PORT:-8080}:8080"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:8080/health/live').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  worker:
+    <<: *furs-service
+    command: [node, /app/worker/dist/main.js]
+    environment:
+      <<: *furs-environment
+      DATABASE_URL: postgresql://furs_worker_login@postgres:5432/furs
+      DATABASE_PASSWORD_FILE: /run/secrets/furs-worker-database-password
+      FURS_WEBHOOK_DESTINATION_ID: ${FURS_WEBHOOK_DESTINATION_ID:?set webhook destination ID}
+      FURS_WEBHOOK_URL: ${FURS_WEBHOOK_URL:?set HTTPS webhook URL}
+      FURS_WEBHOOK_SECRET_FILE: /run/secrets/furs-webhook-secret
+    volumes:
+      - ${FURS_CERTIFICATE_FILE:?set certificate file}:/run/secrets/furs-certificate.p12:ro
+      - ${FURS_CERTIFICATE_PASSPHRASE_FILE:?set passphrase file}:/run/secrets/furs-certificate-passphrase:ro
+      - ${FURS_WORKER_DB_PASSWORD_FILE:?set worker database password file}:/run/secrets/furs-worker-database-password:ro
+      - ${FURS_WEBHOOK_SECRET_FILE:?set webhook secret file}:/run/secrets/furs-webhook-secret:ro
+      - ${FURS_SCHEMA_FILE:?set official schema file}:/run/schemas/FiscalVerificationSchema.json:ro
+      - ${FURS_SERVER_CA_FILE:?set server CA file}:/run/trust/furs-server-ca.pem:ro
+      - ${FURS_RESPONSE_CA_FILE:?set response CA file}:/run/trust/furs-response-ca.pem:ro
+
+volumes:
+  furs-postgres:
+
+networks:
+  furs:

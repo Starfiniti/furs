@@ -1,0 +1,20 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/codes" },
+    { "path": "./packages/persistence-postgres" },
+    { "path": "./packages/service-contract" },
+    { "path": "./packages/testkit" },
+    { "path": "./packages/runtime-node" },
+    { "path": "./packages/adapter-nextjs" },
+    { "path": "./packages/adapter-woocommerce" },
+    { "path": "./packages/adapter-medusa" },
+    { "path": "./packages/adapter-stripe" },
+    { "path": "./packages/adapter-shopify" },
+    { "path": "./apps/api" },
+    { "path": "./apps/worker" },
+    { "path": "./apps/console" },
+    { "path": "./apps/crypto-spike" }
+  ]
+}

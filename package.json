@@ -1,0 +1,33 @@
+{
+  "name": "starfiniti-furs-kit",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Unofficial foundation for Slovenian FURS invoice fiscalization",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "scripts": {
+    "build": "tsc -b",
+    "check": "tsc -b && node --test && node scripts/generate-openapi.mjs --check && node scripts/verify-production-layout.mjs && node scripts/check-no-secrets.mjs",
+    "contract:generate": "corepack pnpm build && node scripts/generate-openapi.mjs",
+    "release:layout": "node scripts/verify-production-layout.mjs",
+    "compliance:check": "node scripts/check-official-sources.mjs",
+    "evidence:furs": "node scripts/run-furs-evidence.mjs",
+    "evidence:postgres": "corepack pnpm build && node scripts/run-postgres-evidence.mjs",
+    "evidence:restore": "corepack pnpm build && node scripts/verify-restored-database.mjs",
+    "evidence:soak": "node scripts/run-furs-soak.mjs",
+    "evidence:rotation": "corepack pnpm build && node scripts/run-certificate-rotation-evidence.mjs",
+    "evidence:load": "node scripts/run-furs-load-evidence.mjs",
+    "migrate": "corepack pnpm --filter @starfiniti/furs-persistence-postgres migrate",
+    "start:api": "corepack pnpm --filter @starfiniti/furs-api start",
+    "start:worker": "corepack pnpm --filter @starfiniti/furs-worker start",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "@types/node-forge": "1.3.14",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "registryVersion": 1,
+  "lastHumanReview": "2026-08-12",
+  "sources": [
+    {
+      "id": "furs-developer-index",
+      "authority": "FURS",
+      "title": "Davčne blagajne – pomočnik za razvijalce / tehnična dokumentacija",
+      "url": "https://edavki.durs.si/edavkiportal/openportal/CommonPages/Opdynp/PageD.aspx?category=dpr_teh_spec",
+      "expectedMarker": "3.2",
+      "expectedContentType": "text/html",
+      "digestTransform": "edavki-page-v1",
+      "kind": "html",
+      "required": true,
+      "baselineSha256": "4d83b8d63434d9500f5c14b84e72392158b06d0fe4dfd6bf0038e195d57ac7d8",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "furs-tech-spec-3-2",
+      "authority": "FURS",
+      "title": "Tehnična dokumentacija za davčno potrjevanje računov, v3.2",
+      "url": "https://www.datoteke.fu.gov.si/dpr/files/TehnicnaDokumentacijaVer3.2.pdf",
+      "expectedVersion": "3.2",
+      "expectedContentType": "application/pdf",
+      "kind": "pdf",
+      "required": true,
+      "baselineSha256": "7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "furs-json-schema-v1",
+      "authority": "FURS",
+      "title": "FiscalVerificationSchema.json",
+      "url": "https://www.datoteke.fu.gov.si/dpr/files/wsdl_v1/FiscalVerificationSchema.json",
+      "expectedContentType": "application/json",
+      "kind": "json-schema",
+      "required": true,
+      "baselineSha256": "6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "furs-json-schema-batch-v1",
+      "authority": "FURS",
+      "title": "FiscalVerificationSchemaBatch.json",
+      "url": "https://www.datoteke.fu.gov.si/dpr/files/wsdl_v1/FiscalVerificationSchemaBatch.json",
+      "expectedContentType": "application/json",
+      "kind": "json-schema",
+      "required": false,
+      "baselineSha256": "01cc186582dcc00815726964eaafc5b22f8ac012f2cc991197d453a1aef7c6e4",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "zdavpr",
+      "authority": "PISRS",
+      "title": "Zakon o davčnem potrjevanju računov (ZDavPR)",
+      "url": "https://pisrs.si/api/datoteke/integracije/358106863",
+      "expectedVersion": "NPB 4",
+      "expectedContentType": "application/pdf",
+      "kind": "law",
+      "required": true,
+      "baselineSha256": "f3e1e07c4ad8b64b50283896ca9f26ec10bb3164f3fca3a9931f71eb81b3fa58",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "zdavpr-rules",
+      "authority": "PISRS",
+      "title": "Pravilnik o izvajanju Zakona o davčnem potrjevanju računov",
+      "url": "https://pisrs.si/api/datoteke/integracije/358571103",
+      "expectedVersion": "NPB 3",
+      "expectedContentType": "application/pdf",
+      "kind": "regulation",
+      "required": true,
+      "baselineSha256": "dd9ceb3451f643c68e7c88bb3d65ed0bfd3e627c1490444c8d704f7dc671daf7",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "spot-fiscal-guidance",
+      "authority": "SPOT",
+      "title": "Vodenje poslovnih knjig in davčno potrjevanje računov",
+      "url": "https://spot.gov.si/sl/teme/vodenje-poslovnih-knjig",
+      "expectedContentType": "text/html",
+      "kind": "guidance",
+      "required": true,
+      "baselineSha256": "bac5c81a45144587691eba7213ced3d2fdbf8e822c4b30ba04ad144821f80386",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    },
+    {
+      "id": "spot-online-retail",
+      "authority": "SPOT",
+      "title": "Trgovina na drobno po pošti ali po internetu",
+      "url": "https://spot.gov.si/sl/dejavnosti-in-poklici/dejavnosti/trgovina-na-drobno-po-posti-ali-po-internetu/",
+      "expectedContentType": "text/html",
+      "kind": "guidance",
+      "required": true,
+      "baselineSha256": "9322d6456b96548c528ee6cdc4bde423cc3d8574f75655f6e8b6c48d1619afe0",
+      "baselineReviewedBy": "Dejan Kletečki",
+      "baselineReviewedAt": "2026-08-12"
+    }
+  ]
+}

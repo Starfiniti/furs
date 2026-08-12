@@ -1,0 +1,10 @@
+{
+  "environment": "test",
+  "scenarioId": "echo-and-reviewed-scenarios-v1",
+  "legalEntityId": "00000000-0000-0000-0000-000000000000",
+  "sourceVersion": {
+    "technicalDocumentation": "3.2",
+    "schemaSha256": "6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd"
+  },
+  "operations": []
+}

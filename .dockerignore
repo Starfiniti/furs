@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+**/dist
+coverage
+*.tsbuildinfo
+tmp
+secrets
+*.p12
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example

@@ -1,0 +1,33 @@
+groups:
+  - name: starfiniti-furs
+    rules:
+      - alert: FursManualReviewPresent
+        expr: starfiniti_furs_documents{status="MANUAL_REVIEW"} > 0
+        for: 5m
+        labels: { severity: warning }
+        annotations: { summary: "FURS fiscal documents require manual review" }
+      - alert: FursSubmissionBacklogOld
+        expr: starfiniti_furs_unconfirmed_oldest_age_seconds > 3600
+        for: 5m
+        labels: { severity: critical }
+        annotations: { summary: "Oldest unconfirmed FURS document is over one hour old" }
+      - alert: FursCertificateExpiring
+        expr: starfiniti_furs_certificate_days_remaining < 30
+        for: 1h
+        labels: { severity: warning }
+        annotations: { summary: "FURS certificate expires in less than 30 days" }
+      - alert: FursCertificateCritical
+        expr: starfiniti_furs_certificate_days_remaining < 14
+        for: 5m
+        labels: { severity: critical }
+        annotations: { summary: "FURS certificate is inside the blocked readiness window" }
+      - alert: FursClockDrift
+        expr: abs(starfiniti_furs_clock_drift_milliseconds) > 5000
+        for: 2m
+        labels: { severity: critical }
+        annotations: { summary: "Fiscal service clock differs from observed FURS time" }
+      - alert: FursWorkerHeartbeatMissing
+        expr: starfiniti_furs_worker_heartbeat_age_seconds < 0 or starfiniti_furs_worker_heartbeat_age_seconds > 30
+        for: 1m
+        labels: { severity: critical }
+        annotations: { summary: "FURS delivery worker heartbeat is missing or stale" }

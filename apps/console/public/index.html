@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Starfiniti FURS operations</title>
+  <link rel="stylesheet" href="/console/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div><p class="eyebrow">Starfiniti FURS</p><h1>Fiscal operations</h1></div>
+      <span id="connection" class="badge">Disconnected</span>
+    </header>
+    <section class="connect" aria-labelledby="connect-title">
+      <div><h2 id="connect-title">Connect securely</h2><p>The API token stays in this tab's memory only.</p></div>
+      <form id="connect-form"><label>Bearer token<input id="token" type="password" minlength="32" autocomplete="off" required></label><button type="submit">Connect</button></form>
+    </section>
+    <section id="summary" class="cards" aria-live="polite"></section>
+    <section class="operations">
+      <div class="section-heading"><div><h2>Fiscal documents</h2><p>Only redacted operational evidence is shown.</p></div><label>Status<select id="status"><option value="">All</option><option>MANUAL_REVIEW</option><option>ISSUED_WITHOUT_EOR</option><option>RETRY_PENDING</option><option>REJECTED</option><option>CONFIRMED</option></select></label></div>
+      <p id="error" role="alert"></p>
+      <div class="table-wrap"><table><thead><tr><th>Document</th><th>Status</th><th>Identity</th><th>Issue time</th><th>Updated</th><th>Action</th></tr></thead><tbody id="documents"></tbody></table></div>
+    </section>
+  </main>
+  <script src="/console/app.js" defer></script>
+</body>
+</html>

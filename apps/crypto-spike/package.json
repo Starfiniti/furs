@@ -1,0 +1,17 @@
+{
+  "name": "@starfiniti/furs-crypto-spike",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "furs-crypto-spike": "./dist/cli.js"
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@starfiniti/furs-core": "workspace:*"
+  }
+}

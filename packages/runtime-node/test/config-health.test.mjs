@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { RuntimeHealthMonitor, loadRuntimeConfig } from '../dist/index.js';
+
+const base = {
+  DATABASE_URL: 'postgres://local/test', DATABASE_PASSWORD_FILE: '/run/secrets/database-password', FURS_LEGAL_ENTITY_ID: '019ff57a-f30d-7290-9bb9-951bed760401', FURS_ENVIRONMENT: 'test', FURS_CERTIFICATE_PATH: '/run/secrets/cert.p12',
+  FURS_CERTIFICATE_PASSPHRASE_FILE: '/run/secrets/passphrase', FURS_API_READ_TOKEN_FILE: '/run/secrets/read-token',
+  FURS_API_WRITE_TOKEN_FILE: '/run/secrets/write-token',
+  FURS_INVOICE_SCHEMA_PATH: '/schemas/invoice.json', FURS_INVOICE_SCHEMA_SHA256: 'a'.repeat(64),
+  FURS_RESPONSE_SCHEMA_PATH: '/schemas/response.json', FURS_RESPONSE_SCHEMA_SHA256: 'b'.repeat(64),
+  FURS_SERVER_CA_PATHS_JSON: '["/trust/server.pem"]', FURS_RESPONSE_CA_PATHS_JSON: '["/trust/response.pem"]'
+};
+
+test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schema paths', () => {
+  const config = loadRuntimeConfig(base);
+  assert.equal(config.environment, 'test'); assert.equal(config.runMigrations, false); assert.equal(config.apiHost, '127.0.0.1');
+  assert.equal(config.readBearerTokenFile, '/run/secrets/read-token');
+  assert.equal(config.writeBearerTokenFile, '/run/secrets/write-token');
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_ENVIRONMENT: 'custom' }), /test or production/);
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_SERVER_CA_PATHS_JSON: '[]' }), /at least one/);
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_WEBHOOK_URL: 'https://example.test/hook' }), /configured together/);
+  assert.throws(() => loadRuntimeConfig({
+    ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'http://example.test/hook',
+    FURS_WEBHOOK_SECRET_FILE: '/run/secrets/webhook'
+  }), /HTTPS/);
+});
+
+test('FURS-CERT-001/CLOCK-001: certificate expiry and stale/drifting clocks fail readiness', () => {
+  const metadata = { subjectName: 'x', issuerName: 'y', serialNumberDecimal: '1', fingerprint256: 'a', validFrom: new Date('2026-01-01T00:00:00Z'), validTo: new Date('2026-09-30T00:00:00Z') };
+  const monitor = new RuntimeHealthMonitor(metadata, 5000, 14);
+  assert.doesNotThrow(() => monitor.assertCertificateReady(new Date('2026-08-12T00:00:00Z')));
+  assert.throws(() => monitor.assertCertificateReady(new Date('2026-09-20T00:00:00Z')), /validity/);
+  assert.throws(() => monitor.assertClockReady(new Date('2026-08-12T00:00:00Z')), /missing/);
+  monitor.observeEcho({ value: 'x', serverDate: 'Wed, 12 Aug 2026 00:00:00 GMT', observedAt: new Date('2026-08-12T00:00:00.100Z') }, new Date('2026-08-12T00:00:00.000Z'));
+  assert.doesNotThrow(() => monitor.assertClockReady(new Date('2026-08-12T00:01:00Z')));
+  assert.throws(() => monitor.assertClockReady(new Date('2026-08-12T00:06:00Z')), /stale/);
+});
