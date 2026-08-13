@@ -17,6 +17,7 @@ test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schem
   assert.equal(config.environment, 'test'); assert.equal(config.runMigrations, false); assert.equal(config.apiHost, '127.0.0.1');
   assert.equal(config.apiMaximumRequestsPerMinute, 600);
   assert.equal(config.workerConcurrency, 1);
+  assert.equal(config.transportMaximumSockets, 32);
   assert.equal(config.readBearerTokenFile, '/run/secrets/read-token');
   assert.equal(config.writeBearerTokenFile, '/run/secrets/write-token');
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_ENVIRONMENT: 'custom' }), /test or production/);
@@ -28,6 +29,8 @@ test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schem
   assert.equal(loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '20' }).workerConcurrency, 20);
   assert.equal(loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '250' }).workerConcurrency, 250);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '251' }), /invalid/);
+  assert.equal(loadRuntimeConfig({ ...base, FURS_TRANSPORT_MAXIMUM_SOCKETS: '64' }).transportMaximumSockets, 64);
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_TRANSPORT_MAXIMUM_SOCKETS: '251' }), /invalid/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_WEBHOOK_URL: 'https://example.test/hook' }), /configured together/);
   assert.throws(() => loadRuntimeConfig({
     ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'http://example.test/hook',

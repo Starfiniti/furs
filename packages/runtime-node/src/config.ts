@@ -18,6 +18,7 @@ export interface RuntimeConfig {
   readonly apiPort: number;
   readonly apiMaximumRequestsPerMinute: number;
   readonly workerConcurrency: number;
+  readonly transportMaximumSockets: number;
   readonly maximumClockDriftMs: number;
   readonly ntpServers: readonly string[];
   readonly ntpMinimumResponses: number;
@@ -106,6 +107,7 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     apiPort: integer(env, 'FURS_API_PORT', 8080, 1, 65535),
     apiMaximumRequestsPerMinute: integer(env, 'FURS_API_MAXIMUM_REQUESTS_PER_MINUTE', 600, 10, 100_000),
     workerConcurrency: integer(env, 'FURS_WORKER_CONCURRENCY', 1, 1, 250),
+    transportMaximumSockets: integer(env, 'FURS_TRANSPORT_MAXIMUM_SOCKETS', 32, 1, 250),
     maximumClockDriftMs: integer(env, 'FURS_MAX_CLOCK_DRIFT_MS', 5000, 100, 60000),
     ntpServers: configuredNtpServers,
     ntpMinimumResponses: configuredNtpMinimumResponses,

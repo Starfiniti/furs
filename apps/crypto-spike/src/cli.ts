@@ -53,6 +53,7 @@ async function main(): Promise<void> {
   const p12 = await readRequiredFile(p12Path, 'PKCS#12 certificate');
   const serverCa = await readRequiredFile(serverCaPath, 'server trust anchor');
   const schema = await readRequiredFile(schemaPath, 'official JSON schema');
+  let transport: FursMtlsTransport | undefined;
 
   try {
     const signer = SoftwareFiscalSigner.fromPkcs12(p12, passphrase);
@@ -75,7 +76,7 @@ async function main(): Promise<void> {
     const canonical = buildCanonicalZoiInput(zoiInput);
     const zoi = await calculateZoi(zoiInput, signer);
     const signedProbe = await signJws('{"CryptoProbe":"phase-1"}', signer);
-    const transport = new FursMtlsTransport({
+    transport = new FursMtlsTransport({
       environment: 'test',
       signer,
       serverTrustAnchors: [serverCa]
@@ -138,6 +139,7 @@ async function main(): Promise<void> {
 
     process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
   } finally {
+    transport?.close();
     p12.fill(0);
   }
 }

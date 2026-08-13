@@ -23,6 +23,7 @@
     "evidence:soak": "node scripts/run-furs-soak.mjs",
     "evidence:rotation": "corepack pnpm build && node scripts/run-certificate-rotation-evidence.mjs",
     "evidence:load": "node scripts/run-furs-load-evidence.mjs",
+    "evidence:capacity:local": "corepack pnpm build && node scripts/run-local-transport-capacity-evidence.mjs",
     "evidence:alerts": "node scripts/run-alert-delivery-evidence.mjs",
     "evidence:outage": "node scripts/run-network-outage-evidence.mjs",
     "evidence:device": "node scripts/run-device-failure-evidence.mjs",

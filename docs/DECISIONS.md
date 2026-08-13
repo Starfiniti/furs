@@ -395,3 +395,27 @@ authenticated read proves the exact original document is `CONFIRMED`; the final
 evidence must still match document, sequence, issue time, message, payload and
 ZOI identities, verify the signed response and observe an empty outbox. Any
 other conflict or identity change fails closed.
+
+## ADR-034 — Persistent mTLS connections are bounded and runtime-owned
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Creating and destroying an HTTPS agent for every invoice forced a new mutually
+authenticated TLS connection for every request and was a measured local
+transport bottleneck. Each runtime now owns one persistent agent whose active,
+total and free socket counts share the configured `1..250` bound (default 32).
+Runtime shutdown destroys the agent explicitly.
+
+Connection reuse does not alter the trust boundary: certificate-chain and
+hostname verification remain strict, the client certificate is still required,
+TLS remains limited to versions 1.2 and 1.3, response size remains bounded and
+TLS session caching remains disabled. A failed or oversized response cannot be
+converted to success, and fiscal identity, immutable retry and durable-outbox
+rules are unchanged.
+
+Loopback fixture evidence may demonstrate the transport improvement but cannot
+close the official Phase 7 throughput gate. Another bounded FURS test load needs
+new explicit approval. The documented FURS batch endpoint remains deferred until
+its own requirements, schemas, cryptographic mapping and official evidence are
+reviewed.

@@ -81,6 +81,11 @@ files, never command-line arguments or environment values.
   unique documents, 1,000 unique fiscal identities and no duplicates, but only
   67.198/second was achieved. The capacity gate remains open and no further
   shared-service load was run after this result.
+- Local loopback analysis then identified one full mutually authenticated TLS
+  connection per invoice as a client-side bottleneck. A bounded persistent agent
+  passed 1,000 fixture requests at 2,013.486/second with exactly 32 authorized
+  TLS connections. This closes only the local transport finding; the official
+  180/second FURS load gate still requires a newly approved bounded rerun.
 - A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
   nine cycles passed, including cycles after worker restarts onto hardened
   builds, but the release gate remains open until the full elapsed duration and

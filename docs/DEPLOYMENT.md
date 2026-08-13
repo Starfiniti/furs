@@ -27,6 +27,11 @@ edge rate limits, authentication and capacity evidence for the selected value.
 simultaneous leased deliveries in one worker process. Raise it only from measured
 FURS latency, database-pool capacity and an approved load target. PostgreSQL
 leases and immutable identities remain authoritative at every setting.
+`FURS_TRANSPORT_MAXIMUM_SOCKETS` defaults to `32` and allows `1` through `250`
+strictly verified, persistent mTLS connections per API or worker process. Size it
+at or below the reviewed worker concurrency and database capacity. Connection
+reuse does not relax certificate-chain, hostname, TLS-version or response-size
+validation, and TLS session caching remains disabled.
 
 Plain SNTP is not cryptographically authenticated, so production should prefer
 controlled infrastructure sources and restrict UDP/123 to the reviewed list.
