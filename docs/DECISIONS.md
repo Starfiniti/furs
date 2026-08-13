@@ -314,3 +314,19 @@ maximum fiscal attempt so attempt identities never restart or collide.
 When FURS response verification succeeds but the terminal DB transaction fails,
 the fallback manual-review attempt preserves the response hash and verified
 certificate fingerprint. Raw signed tokens remain excluded.
+
+## ADR-029 — Alert routing evidence is scoped to the exercised receiver
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Prometheus rule evaluation and Alertmanager notification routing are separate
+controls. `promtool` tests prove the committed expressions and hold times. The
+alert-delivery evidence runner then uses an official checksum-verified
+Alertmanager binary and a loopback webhook to prove that every required release
+category traverses the actual grouping and notification path.
+
+Local loopback evidence must record `productionRoutingVerified: false`. It cannot
+approve a production receiver, on-call escalation, authentication, network
+policy or delivery service. Those remain named deployment evidence rather than a
+property inferred from a successful local webhook.

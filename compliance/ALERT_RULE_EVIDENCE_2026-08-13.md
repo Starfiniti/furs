@@ -30,7 +30,7 @@ contains no credentials or operational data.
 ## Evidence boundary
 
 This proves PromQL syntax and deterministic transition to firing for all required
-categories. It does not prove production scraping, Alertmanager routing, receipt
-by a named operator, escalation or notification-provider availability. The final
-release alert gate therefore remains unchecked until an end-to-end deployment
-drill records those events.
+categories. `ALERT_DELIVERY_EVIDENCE_2026-08-13.md` separately proves local
+end-to-end delivery through an official Alertmanager binary. Neither report
+proves production scraping, receipt by a named operator, escalation or
+notification-provider availability; those remain deployment review items.

@@ -16,7 +16,7 @@ named reviewer. A green local test suite is necessary but not sufficient.
 - [ ] Certificate and trust-chain rotation rehearsals pass.
 - [ ] Backup, PITR restore and sequence high-water reconciliation pass.
 - [ ] Network-outage and issuing-device/VKR drills pass separately.
-- [ ] Certificate expiry, clock drift, retry age and manual-review alerts fire.
+- [x] Certificate expiry, clock drift, retry age and manual-review alerts fire locally and traverse Alertmanager; production routing remains deployment evidence.
 - [x] Container/dependency/secret scans have no unresolved high or critical issues.
 - [ ] External security review accepts certificate, auth and crypto boundaries.
 - [ ] Data controller and legal reviewers approve the record-class retention/privacy schedule and backup expiry behavior.
@@ -88,3 +88,15 @@ document/fiscal-identity uniqueness; and reports elapsed throughput plus redacte
 p50/p95 latency. The command exits non-zero when achieved throughput is below
 three times the reviewed peak. Agree the load and schedule with the responsible
 reviewer before contacting the shared FURS test service.
+
+For local end-to-end alert-routing evidence, use the official Alertmanager binary
+whose release archive checksum was independently verified. Set
+`FURS_ALERTMANAGER_EXECUTABLE_PATH`, an external protected
+`FURS_ALERT_EVIDENCE_DIR`, the independently recorded
+`FURS_ALERTMANAGER_EXECUTABLE_SHA256`, and
+`FURS_ALERT_DELIVERY_CONFIRMATION=furs-alert-routing-approved`, then run
+`corepack pnpm evidence:alerts`. The runner starts an isolated loopback-only
+Alertmanager and webhook receiver, submits every required release alert category,
+and fails unless all categories traverse the real routing path. Its output
+deliberately records `productionRoutingVerified: false`; production receiver,
+escalation and access-control evidence remains a deployment gate.

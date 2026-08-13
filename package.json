@@ -23,6 +23,7 @@
     "evidence:soak": "node scripts/run-furs-soak.mjs",
     "evidence:rotation": "corepack pnpm build && node scripts/run-certificate-rotation-evidence.mjs",
     "evidence:load": "node scripts/run-furs-load-evidence.mjs",
+    "evidence:alerts": "node scripts/run-alert-delivery-evidence.mjs",
     "migrate": "corepack pnpm --filter @starfiniti/furs-persistence-postgres migrate",
     "start:api": "corepack pnpm --filter @starfiniti/furs-api start",
     "start:worker": "corepack pnpm --filter @starfiniti/furs-worker start",

@@ -22,6 +22,9 @@ Gate status: evidence automation implemented; external executions pending
   uniqueness plus latency evidence.
 - `evidence:soak` defaults to 48 hours, creates a fresh invoice identity each
   cycle and emits only aggregate counts with a chained evidence hash.
+- `evidence:alerts` starts an official checksum-verified Alertmanager on
+  loopback and fails unless every release alert category reaches its isolated
+  webhook receiver; the result cannot claim production routing.
 - CI builds the release Dockerfile with commit-pinned actions, emits a CycloneDX
   SBOM and rejects HIGH/CRITICAL image vulnerabilities.
 - Node and PostgreSQL image tags are manifest-digest pinned. The local release
@@ -45,7 +48,7 @@ files, never command-line arguments or environment values.
 
 ## Current acceptance evidence
 
-- `corepack pnpm check`: 157 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- `corepack pnpm check`: 161 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
 - Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
@@ -55,9 +58,10 @@ files, never command-line arguments or environment values.
   evidence passed.
 - Official Prometheus `promtool` 3.13.1 parsed all six alert rules and synthetic
   unit tests proved firing for certificate, clock, retry backlog, manual review
-  and worker-heartbeat categories; end-to-end delivery remains open.
+  and worker-heartbeat categories. Official Alertmanager 0.32.1 then delivered
+  all five required release categories to an isolated loopback webhook.
 - A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
-  cycle passed, but the release gate remains open until the full elapsed duration
+  two cycles passed, but the release gate remains open until the full elapsed duration
   and final chained report are verified.
 
 ## External gates still required
@@ -65,6 +69,6 @@ files, never command-line arguments or environment values.
 The local PostgreSQL/logical-restore report is not production PITR or named
 reviewer approval. The active soak must finish. Peak load requires explicit
 shared-test-service volume approval. Rotation requires a second test certificate.
-Production PITR, live alert delivery, independent security review, accountant
+Production PITR, production alert delivery, independent security review, accountant
 scenario signoff, named compliance ownership and the controller/legal retention
 and privacy schedule remain required before production approval.
