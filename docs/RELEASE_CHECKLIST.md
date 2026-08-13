@@ -4,20 +4,20 @@ Production remains blocked until every applicable item has dated evidence and a
 named reviewer. A green local test suite is necessary but not sufficient.
 
 - [ ] Official source checker is green and source register is reviewed.
-- [ ] FURS test certificate metadata is recorded without storing secret material.
-- [ ] Strict mTLS echo succeeds; missing/wrong client certificate fails.
+- [x] FURS test certificate metadata is recorded without storing secret material.
+- [x] Strict mTLS echo succeeds; missing/wrong client certificate fails.
 - [ ] Official test invoices cover standard, rejection, timeout, subsequent submit and correction.
-- [ ] Business-premise register, update and close succeed in the test environment.
-- [ ] Signed responses reject tampered header, payload, signature and trust chains.
-- [ ] Independent ZOI and 60-digit receipt-code vectors match.
-- [ ] Real PostgreSQL multi-connection sequence/outbox crash tests pass.
+- [x] Business-premise register, update and close succeed in the test environment.
+- [x] Signed responses reject tampered header, payload, signature and trust chains.
+- [x] Independent ZOI and 60-digit receipt-code vectors match.
+- [x] Real PostgreSQL multi-connection sequence/outbox crash tests pass.
 - [ ] Two-day stable FURS test-environment soak passes.
 - [ ] Peak load plus safety margin passes without duplicate identities.
 - [ ] Certificate and trust-chain rotation rehearsals pass.
 - [ ] Backup, PITR restore and sequence high-water reconciliation pass.
 - [ ] Network-outage and issuing-device/VKR drills pass separately.
 - [ ] Certificate expiry, clock drift, retry age and manual-review alerts fire.
-- [ ] Container/dependency/secret scans have no unresolved high or critical issues.
+- [x] Container/dependency/secret scans have no unresolved high or critical issues.
 - [ ] External security review accepts certificate, auth and crypto boundaries.
 - [ ] Data controller and legal reviewers approve the record-class retention/privacy schedule and backup expiry behavior.
 - [ ] Slovenian accountant/tax specialist signs the supported scenario matrix.

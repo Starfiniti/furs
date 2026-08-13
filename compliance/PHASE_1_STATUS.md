@@ -1,6 +1,6 @@
 # Phase 1 status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Requirements: `FURS-TIME-001/002`, `FURS-MONEY-001`, `FURS-ZOI-001/002`, `FURS-JWS-001/002`, `FURS-TLS-001/002`, `FURS-SCHEMA-001`, `FURS-SEC-001/002`, `FURS-CERT-001`
 Gate: P1 — incomplete
 
@@ -18,17 +18,23 @@ Gate: P1 — incomplete
 
 ## Verification evidence
 
-- Latest `corepack pnpm check`: 56 tests passed, 0 failed, 0 skipped, 0 todo (the Phase 1 checkpoint originally contained 42 tests).
+- Latest `corepack pnpm check`: 156 tests passed, 0 failed, 0 skipped, 0 todo.
 - The official schema with SHA-256 `6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd` compiled with the pinned Draft-04 validator.
 - An independent OpenSSL 3 RSA-SHA256/MD5 calculation over the 51-byte canonical fixture produced the same 256-byte signature-derived ZOI as the Node implementation: `1da0adb4cc87fd85f909e0acb99a2aa4`.
 - Local negative-path tests prove that missing client identity and an unknown server CA fail the TLS handshake.
+- The issued anonymous test PKCS#12 completed strict mTLS Echo against the official
+  FURS test endpoint. Missing and unrelated client certificates were rejected.
+- A real signed FURS rejection was verified through the pinned response chain,
+  official schema and expected request/response correlation.
+- Confirmed official-test operations now cover a standard invoice, a linked
+  correction, a subsequent submission and business-premise register/update/close.
+  Public evidence contains only status, hashes and non-secret identifiers.
 
 ## Gate blockers
 
-- P0 source digests were accepted by Dejan Kletečki on 12 August 2026, but the remaining P0 ownership/accounting/licensing items are still open.
-- A real FURS test PKCS#12 certificate has not been provisioned through the official process.
-- The spike has not completed a mutual-TLS request against the official FURS test endpoint with that certificate.
-- A real signed FURS test response has not been captured and verified against the official response certificate chain.
 - A second developer has not independently reviewed the cryptographic implementation and golden-vector evidence.
 
-The local implementation is ready for official test-environment verification, but Gate P1 must not be marked passed until every blocker above has auditable evidence.
+The technical and official-test portions of P1 are evidenced. Gate P1 remains
+incomplete only because the required independent cryptographic review has not
+yet been recorded. P0 professional-review blockers still prevent production but
+do not negate the completed P1 protocol evidence.

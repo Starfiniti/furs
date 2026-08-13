@@ -1,6 +1,6 @@
 # Phase 2 status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Requirements: `FURS-SCHEMA-001`, `FURS-ID-001`, `FURS-OP-001/002`, `FURS-PREM-001`, `FURS-VEND-001`
 Gate: P2 — incomplete
 
@@ -24,12 +24,16 @@ Gate: P2 — incomplete
 - A representative real-estate premise registration payload passed that same unmodified official schema.
 - Locally signed confirmed/rejected invoice responses and accepted/rejected premise responses passed signature, trust-chain, official-schema, internal-outcome, and message-correlation checks.
 - Negative tests cover ambiguous/missing response outcomes, incomplete errors, unexpected response fields, message-ID mismatch, local/foreign/self-service operators, exact decimal JSON tokens, identity rejection, premise registration/closure, all three movable types, supplier variants, and vending rejection.
+- A movable premise was registered and updated in the official FURS test
+  environment. A separate test premise was registered and closed. Every accepted
+  response passed signature, trust, schema and lifecycle validation.
 
 ## Gate blockers
 
 - Gates P0 and P1 remain incomplete and must not be bypassed.
-- Premise register, update, and close operations have not been exercised with a real certificate in the official FURS test environment.
 - The supported v1 scenario matrix still requires Slovenian accountant/tax-specialist approval.
 - Vending support remains intentionally deferred and unsupported.
 
-The pure core is ready for continued workflow implementation and official test-environment validation, but Gate P2 is not passed.
+The P2 technical and official premise-lifecycle evidence is complete for the
+supported non-vending scope. Gate P2 remains dependency-blocked by P0/P1 review
+and scenario signoff; vending remains explicitly unsupported.

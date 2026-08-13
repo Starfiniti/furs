@@ -1,6 +1,6 @@
 # Phase 0 status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Requirement: `FURS-SRC-001`
 Gate: P0 — incomplete
 
@@ -20,15 +20,22 @@ Gate: P0 — incomplete
   online-retail SPOT digest. The affected payment/adaptor policy is frozen in
   `SOURCE_CHANGE_REVIEW_2026-08-12.md` pending specialist review.
 - The FURS developer test-certificate request was sent to `sd.fu@gov.si` on 12 August 2026.
-- A local certificate directory was prepared outside Git and Nextcloud with ACL inheritance disabled and access limited to the current Windows user and SYSTEM.
+- The issued anonymous test PKCS#12 was received on 13 August 2026, moved outside
+  Git and Nextcloud, metadata-only evidence was recorded and file access was
+  restricted to the current Windows user and SYSTEM.
 - Dejan Kletečki is recorded as project owner, internal security owner and
   internal source-baseline reviewer in `docs/GOVERNANCE.md`.
+- A complete Slovenian review pack now supplies the scenario matrix, invoice
+  checklist, internal-act draft, official-notice instructions and signoff form.
 
 ## Gate blockers
 
 - The external accountant/tax-specialist reviewer and final production
   compliance owner have not yet been identified.
-- The supported v1 payment/business-scenario matrix has not been completed and approved by a Slovenian accountant or tax/legal specialist.
+- The supported v1 payment/business-scenario matrix is prepared but has not been
+  completed and approved by a Slovenian accountant or tax/legal specialist.
 - Final licensing has not received legal review.
 
-Phase 1 protocol integration and any production-readiness claim remain blocked until the applicable P0 requirements are resolved. Safe repository tooling and non-normative test scaffolding may continue without weakening this gate.
+Protocol test-environment work may continue, but production approval remains
+blocked until the applicable P0 ownership and professional-review requirements
+are resolved.

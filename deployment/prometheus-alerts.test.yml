@@ -1,0 +1,66 @@
+rule_files:
+  - prometheus-alerts.yml
+
+evaluation_interval: 1m
+
+tests:
+  - name: every FURS operational alert reaches firing after its configured hold time
+    interval: 1m
+    input_series:
+      - series: 'starfiniti_furs_documents{status="MANUAL_REVIEW"}'
+        values: '1+0x60'
+      - series: 'starfiniti_furs_unconfirmed_oldest_age_seconds'
+        values: '3601+0x60'
+      - series: 'starfiniti_furs_certificate_days_remaining'
+        values: '10+0x60'
+      - series: 'starfiniti_furs_clock_drift_milliseconds'
+        values: '5001+0x60'
+      - series: 'starfiniti_furs_worker_heartbeat_age_seconds'
+        values: '31+0x60'
+    alert_rule_test:
+      - eval_time: 0m
+        alertname: FursManualReviewPresent
+        exp_alerts: []
+      - eval_time: 5m
+        alertname: FursManualReviewPresent
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+              status: MANUAL_REVIEW
+            exp_annotations:
+              summary: FURS fiscal documents require manual review
+      - eval_time: 5m
+        alertname: FursSubmissionBacklogOld
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: Oldest unconfirmed FURS document is over one hour old
+      - eval_time: 1h
+        alertname: FursCertificateExpiring
+        exp_alerts:
+          - exp_labels:
+              severity: warning
+            exp_annotations:
+              summary: FURS certificate expires in less than 30 days
+      - eval_time: 5m
+        alertname: FursCertificateCritical
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: FURS certificate is inside the blocked readiness window
+      - eval_time: 2m
+        alertname: FursClockDrift
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: Fiscal service clock differs from observed FURS time
+      - eval_time: 1m
+        alertname: FursWorkerHeartbeatMissing
+        exp_alerts:
+          - exp_labels:
+              severity: critical
+            exp_annotations:
+              summary: FURS delivery worker heartbeat is missing or stale

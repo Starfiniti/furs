@@ -1,6 +1,6 @@
 # Phase 7 implementation status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Gate status: evidence automation implemented; external executions pending
 
 ## Implemented evidence controls
@@ -43,21 +43,27 @@ runners can prove they are targeting the intended test deployment. The crypto
 spike and all service runtime paths read certificate passphrases from protected
 files, never command-line arguments or environment values.
 
-## Local acceptance evidence
+## Current acceptance evidence
 
-- `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
-- Secret scan: 239 files passed.
+- `corepack pnpm check`: 156 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
-- OpenAPI consistency, PHP syntax and four deployment/CI YAML files pass.
-- Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
-  integrity rehearsals passed with redacted local evidence.
+- Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
+  logical-restore integrity rehearsals passed with redacted evidence.
+- Strict official-test mTLS, signed response, premise lifecycle, standard invoice,
+  correction and subsequent-submission evidence passed.
+- Official Prometheus `promtool` 3.13.1 parsed all six alert rules and synthetic
+  unit tests proved firing for certificate, clock, retry backlog, manual review
+  and worker-heartbeat categories; end-to-end delivery remains open.
+- A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
+  cycle passed, but the release gate remains open until the full elapsed duration
+  and final chained report are verified.
 
 ## External gates still required
 
-The local PostgreSQL and logical-restore runners have now executed against a
-temporary native PostgreSQL 17.10 server. Their local report is not production
-PITR or named reviewer approval. The requested FURS test certificate and Docker
-remain unavailable. Official FURS operations, container/PITR, rotation, load and
-48-hour soak evidence must still be executed and reviewed before production
-approval. The technical retention hold is documented, but the data
-controller/legal retention and privacy schedule also requires approval.
+The local PostgreSQL/logical-restore report is not production PITR or named
+reviewer approval. The active soak must finish. Peak load requires explicit
+shared-test-service volume approval. Rotation requires a second test certificate.
+Production PITR, live alert delivery, independent security review, accountant
+scenario signoff, named compliance ownership and the controller/legal retention
+and privacy schedule remain required before production approval.
