@@ -11,7 +11,8 @@ export const MIGRATION_FILES = Object.freeze([
   '010_single_active_fiscal_delivery.sql',
   '011_confirmation_evidence_immutability.sql',
   '012_worker_business_premise_confirmation.sql',
-  '013_sequence_reservation_privilege_boundary.sql'
+  '013_sequence_reservation_privilege_boundary.sql',
+  '014_worker_claim_capacity.sql'
 ] as const);
 
 export async function readMigration(name: (typeof MIGRATION_FILES)[number]): Promise<string> {

@@ -141,7 +141,7 @@ test('FURS-AUD-001: applied database migrations are digest-tracked and replay-sa
   t.after(() => db.close());
   await runMigrations(database);
   const migrations = await db.query('select name, sha256 from furs.schema_migrations order by name');
-  assert.equal(migrations.rows.length, 13);
+  assert.equal(migrations.rows.length, 14);
   assert.ok(migrations.rows.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
 });
 
@@ -322,6 +322,29 @@ test('FURS-OUT-001: outbox claim, retry and confirmation preserve the original d
   assert.equal(confirmed.payloadJson, prepared.payloadJson);
   assert.equal((await db.query('select count(*)::int as count from furs.fiscal_attempts')).rows[0].count, 2);
   assert.equal((await db.query('select count(*)::int as count from furs.audit_events')).rows[0].count, 3);
+});
+
+test('FURS-ID-002/OUT-001/REL-001: bounded claim capacity exceeds the former 100-job ceiling', async (t) => {
+  const { db, repository } = await setup();
+  t.after(() => db.close());
+
+  for (let index = 0; index < 101; index += 1) {
+    const suffix = String(index + 200).padStart(12, '0');
+    const sequence = await repository.allocateInvoiceSequence(entityId, 'TRGOVINA1', 'BLAG1');
+    await repository.prepareFiscalCommand(command(sequence, {
+      operationId: `019ff57a-f30d-7290-9bb9-${suffix}`,
+      idempotencyKey: IdempotencyKey.parse(`claim-capacity:${index}`),
+      messageId: MessageId.parse(`4e64a93a-40fa-4c02-afb1-${suffix}`),
+      payload: payload(`claim-${index}`)
+    }));
+  }
+
+  const jobs = await repository.claimOutboxJobs('worker-capacity', 250);
+  assert.equal(jobs.length, 101);
+  await assert.rejects(
+    repository.claimOutboxJobs('worker-capacity', 251),
+    (error) => error.code === 'FURS_OUTBOX_CLAIM'
+  );
 });
 
 test('FURS-IDEMP-001/OUT-001: reconciliation cannot create a second active fiscal delivery', async (t) => {

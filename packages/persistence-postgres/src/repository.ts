@@ -851,7 +851,7 @@ export class PostgresFiscalRepository {
   }
 
   public async claimOutboxJobs(workerId: string, limit = 10): Promise<readonly ClaimedOutboxJob[]> {
-    if (!/^[A-Za-z0-9._:-]{1,100}$/.test(workerId) || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+    if (!/^[A-Za-z0-9._:-]{1,100}$/.test(workerId) || !Number.isSafeInteger(limit) || limit < 1 || limit > 250) {
       throw new FursDomainError('FURS_OUTBOX_CLAIM', 'Worker claim parameters are invalid');
     }
     return this.#database.transaction(async (client) => {
