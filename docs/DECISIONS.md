@@ -363,3 +363,19 @@ and production approval as false until a named operator and Slovenian
 accounting/legal reviewer complete the paper/sales-book procedure and later
 reconciliation. A connectivity-outage retry or ordinary FURS test invoice cannot
 substitute for that evidence.
+
+## ADR-032 — Worker concurrency and PostgreSQL claim capacity are one bound
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+The worker's configured concurrency is also the maximum atomic PostgreSQL
+`SKIP LOCKED` outbox claim size. Configuration, worker validation, repository
+validation and the digest-locked database function therefore share one hard
+upper bound. A real PostgreSQL regression test must exercise a claim above the
+former ceiling so a configuration-only change cannot silently fail at runtime.
+
+The default remains 1. The upper bound of 250 exists for explicitly approved,
+bounded Phase 7 evidence and is not a production sizing recommendation. A
+failed throughput result does not justify increasing this bound or repeating a
+shared-service load test without a capacity review and new approval.

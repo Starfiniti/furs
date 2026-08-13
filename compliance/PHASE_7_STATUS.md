@@ -1,7 +1,7 @@
 # Phase 7 implementation status
 
 Last updated: 13 August 2026
-Gate status: evidence automation implemented; external executions pending
+Gate status: evidence automation implemented; load gate failed; external gates pending
 
 ## Implemented evidence controls
 
@@ -53,7 +53,7 @@ files, never command-line arguments or environment values.
 
 ## Current acceptance evidence
 
-- `corepack pnpm check`: 169 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- `corepack pnpm check`: 172 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
 - Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
@@ -71,16 +71,22 @@ files, never command-line arguments or environment values.
 - A live issuing-device failure-boundary drill blocked an ordinary command with
   `FURS_DEVICE_FALLBACK_REQUIRED`, created no document/outbox job and left the
   dedicated test device non-operational. Human VKR execution/approval remains open.
+- An approved bounded load run used the reviewed 60 invoices/second peak and
+  therefore required 180/second. All 1,000 invoices were confirmed with 1,000
+  unique documents, 1,000 unique fiscal identities and no duplicates, but only
+  67.198/second was achieved. The capacity gate remains open and no further
+  shared-service load was run after this result.
 - A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
-  four cycles passed, including cycles after worker restarts onto hardened
+  nine cycles passed, including cycles after worker restarts onto hardened
   builds, but the release gate remains open until the full elapsed duration and
   final chained report are verified.
 
 ## External gates still required
 
 The local PostgreSQL/logical-restore report is not production PITR or named
-reviewer approval. The active soak must finish. Peak load requires explicit
-shared-test-service volume approval. Rotation requires a second test certificate.
+reviewer approval. The active soak must finish. Peak load has explicit approval
+and integrity evidence, but failed the required 3× throughput threshold; a
+capacity review and newly approved bounded rerun are required. Rotation requires a second test certificate.
 Production PITR, production alert delivery, independent security review, accountant
 scenario signoff, named compliance ownership and the controller/legal retention
 and privacy schedule remain required before production approval. The controlled
