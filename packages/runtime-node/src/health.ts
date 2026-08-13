@@ -1,4 +1,6 @@
-import type { CertificateMetadata, FursEchoObservation } from '@starfiniti/furs-core';
+import { FursDomainError, type CertificateMetadata } from '@starfiniti/furs-core';
+
+import type { NtpClockObservation } from './sntp.js';
 
 export interface RuntimeHealthSnapshot {
   readonly certificateDaysRemaining: number;
@@ -17,12 +19,11 @@ export class RuntimeHealthMonitor {
     this.#certificate = certificate; this.#maximumClockDriftMs = maximumClockDriftMs; this.#minimumDays = minimumDays;
   }
 
-  public observeEcho(observation: FursEchoObservation, requestStartedAt: Date): void {
-    if (observation.serverDate === undefined) throw new Error('FURS echo response has no Date header for clock monitoring');
-    const remote = Date.parse(observation.serverDate);
-    if (!Number.isFinite(remote)) throw new Error('FURS echo Date header is invalid');
-    const midpoint = (requestStartedAt.getTime() + observation.observedAt.getTime()) / 2;
-    this.#clockDriftMs = Math.round(midpoint - remote);
+  public observeClock(observation: NtpClockObservation): void {
+    if (!Number.isSafeInteger(observation.clockDriftMs) || !Number.isFinite(observation.observedAt.getTime()) || observation.responseCount < 2) {
+      throw new Error('NTP clock observation is invalid');
+    }
+    this.#clockDriftMs = observation.clockDriftMs;
     this.#observedAt = observation.observedAt;
   }
 
@@ -32,10 +33,13 @@ export class RuntimeHealthMonitor {
   }
 
   public assertClockReady(now = new Date()): void {
-    if (this.#clockDriftMs === undefined || this.#observedAt === undefined || now.getTime() - this.#observedAt.getTime() > 300_000) {
-      throw new Error('FURS clock observation is missing or stale');
+    const ageMs = this.#observedAt === undefined ? undefined : now.getTime() - this.#observedAt.getTime();
+    if (this.#clockDriftMs === undefined || ageMs === undefined || ageMs < -10_000 || ageMs > 300_000) {
+      throw new FursDomainError('FURS_CLOCK_NOT_READY', 'NTP clock observation is missing or stale');
     }
-    if (Math.abs(this.#clockDriftMs) > this.#maximumClockDriftMs) throw new Error('System clock drift exceeds the configured threshold');
+    if (Math.abs(this.#clockDriftMs) > this.#maximumClockDriftMs) {
+      throw new FursDomainError('FURS_CLOCK_NOT_READY', 'System clock drift exceeds the configured threshold');
+    }
   }
 
   public snapshot(now = new Date()): RuntimeHealthSnapshot {
