@@ -19,7 +19,8 @@
   },
   "dependencies": {
     "@starfiniti/furs-core": "workspace:*",
-    "pg": "8.23.0"
+    "pg": "8.23.0",
+    "pg-connection-string": "2.14.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.4",
