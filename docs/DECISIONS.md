@@ -346,3 +346,20 @@ JWS verification supports the documented Base64URL RS256 form only. Unsupported
 critical-header semantics and `b64:false` are rejected even when a token is
 otherwise correctly signed. Configured mTLS and webhook URLs also reject query
 strings so credentials cannot migrate from protected files into URLs.
+
+## ADR-031 — Device-failure evidence cannot be inferred from network retries
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+A technical issuing-device drill uses a dedicated test-device identity, marks it
+non-operational and submits one fresh ordinary command with
+`subsequentSubmit: false`. Passing evidence requires the explicit
+`FURS_DEVICE_FALLBACK_REQUIRED` boundary before any fiscal document or outbox job
+exists, and the device remains non-operational after the drill.
+
+This result proves only the software boundary. It must record human VKR execution
+and production approval as false until a named operator and Slovenian
+accounting/legal reviewer complete the paper/sales-book procedure and later
+reconciliation. A connectivity-outage retry or ordinary FURS test invoice cannot
+substitute for that evidence.

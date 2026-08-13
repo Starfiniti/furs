@@ -25,6 +25,11 @@ Gate status: evidence automation implemented; external executions pending
 - `evidence:alerts` starts an official checksum-verified Alertmanager on
   loopback and fails unless every release alert category reaches its isolated
   webhook receiver; the result cannot claim production routing.
+- `evidence:outage` proves a healthy worker retains one immutable subsequent
+  submission across a controlled FURS connectivity interruption and recovery.
+- `evidence:device` proves a non-operational issuing device blocks an ordinary
+  command before document/outbox creation, while explicitly refusing to claim
+  that the human VKR procedure was completed or approved.
 - CI builds the release Dockerfile with commit-pinned actions, emits a CycloneDX
   SBOM and rejects HIGH/CRITICAL image vulnerabilities.
 - Node and PostgreSQL image tags are manifest-digest pinned. The local release
@@ -48,7 +53,7 @@ files, never command-line arguments or environment values.
 
 ## Current acceptance evidence
 
-- `corepack pnpm check`: 162 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- `corepack pnpm check`: 169 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
 - Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
@@ -63,10 +68,13 @@ files, never command-line arguments or environment values.
 - An internal certificate/authentication/cryptography review corrected bounded
   TLS response handling, interrupted-response retry classification, secret-bearing
   query URLs and unsupported JWS critical semantics. Independent review remains open.
+- A live issuing-device failure-boundary drill blocked an ordinary command with
+  `FURS_DEVICE_FALLBACK_REQUIRED`, created no document/outbox job and left the
+  dedicated test device non-operational. Human VKR execution/approval remains open.
 - A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
-  three cycles passed, including one after a worker restart onto the security-
-  hardened build, but the release gate remains open until the full elapsed duration
-  and final chained report are verified.
+  four cycles passed, including cycles after worker restarts onto hardened
+  builds, but the release gate remains open until the full elapsed duration and
+  final chained report are verified.
 
 ## External gates still required
 
@@ -75,4 +83,7 @@ reviewer approval. The active soak must finish. Peak load requires explicit
 shared-test-service volume approval. Rotation requires a second test certificate.
 Production PITR, production alert delivery, independent security review, accountant
 scenario signoff, named compliance ownership and the controller/legal retention
-and privacy schedule remain required before production approval.
+and privacy schedule remain required before production approval. The controlled
+network-outage drill still requires an administrator-approved temporary firewall
+rule; the human VKR/sales-book procedure remains separate from the completed
+technical device block.

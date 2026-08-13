@@ -105,6 +105,19 @@ explicit subsequent-submission flag. This is network-outage evidence only; it
 must never be used as evidence for the legally separate issuing-device/VKR
 procedure.
 
+For the technically separate issuing-device failure boundary, copy
+`templates/furs-device-failure-scenario.example.json` to a protected path and
+use a dedicated test-device identifier. Set
+`FURS_DEVICE_FAILURE_CONFIRMATION=furs-test-device-failure-approved`,
+`FURS_DEVICE_FAILURE_SCENARIO_PATH`, `FURS_DEVICE_FAILURE_EVIDENCE_PATH`,
+`FURS_API_URL` and `FURS_API_WRITE_TOKEN_FILE`, then run
+`corepack pnpm evidence:device`. The runner leaves that dedicated device
+non-operational and fails unless ordinary electronic issuance is rejected with
+`FURS_DEVICE_FALLBACK_REQUIRED` before any fiscal document or outbox job is
+created. Its output deliberately records `humanVkrProcedureExecuted: false` and
+`productionVkrApproval: false`; a reviewed operator/VKR exercise and later
+SalesBookInvoice reconciliation remain a separate human/legal release gate.
+
 Copy `templates/furs-load-scenario.example.json` to a protected path, replace
 every placeholder and record the reviewed `expectedPeakPerSecond`. Set
 `FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired
