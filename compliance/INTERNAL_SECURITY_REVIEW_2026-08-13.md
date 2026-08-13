@@ -41,7 +41,9 @@ The transport now:
 - settles response `error` and `aborted` events exactly once;
 - returns `FURS_TLS_RESPONSE_SIZE` for an oversized response;
 - classifies `FURS_TLS_RESPONSE_ABORTED` as a temporary connection failure so
-  bounded retry preserves the original document, sequence, issue time and ZOI.
+  bounded retry preserves the original document, sequence, issue time and ZOI;
+- treats the bounded set of ordinary DNS, refused/reset connection, unreachable
+  network/host, broken-pipe and timeout codes as temporary connectivity failures.
 
 A local strict-mTLS server regression test sends a response over the limit and
 proves rejection without process failure.

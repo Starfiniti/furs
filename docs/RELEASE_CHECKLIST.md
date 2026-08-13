@@ -78,6 +78,33 @@ idempotency key, while the final report contains only aggregate counts and a
 SHA-256 evidence chain. Worker restarts and controlled network interruptions
 must still be orchestrated and recorded by the reviewer during the run.
 
+For the separate controlled network-outage gate, copy
+`templates/furs-network-outage-scenario.example.json` to a protected path
+outside the repository and replace every placeholder. Use an isolated test
+window with an empty outbox and a healthy worker. While outbound connectivity
+from the worker to the FURS test endpoint is blocked, set:
+
+```text
+FURS_OUTAGE_CONFIRMATION=furs-test-network-outage-approved
+FURS_OUTAGE_PHASE=prepare
+FURS_OUTAGE_SCENARIO_PATH=<protected scenario path>
+FURS_OUTAGE_STATE_PATH=<protected state path>
+FURS_API_URL=http://127.0.0.1:8080
+FURS_API_WRITE_TOKEN_FILE=<protected write-token path>
+```
+
+Run `corepack pnpm evidence:outage`. The prepare phase fails unless the worker
+remains healthy, the invoice remains `ISSUED_WITHOUT_EOR`, a failed connection
+attempt is observed and the same command remains in the durable outbox. Always
+restore connectivity in an operating-system-level `finally`/cleanup boundary.
+Then set `FURS_OUTAGE_PHASE=recover` and
+`FURS_OUTAGE_EVIDENCE_PATH=<protected evidence path>` and run the same command.
+Recovery fails unless the official test service confirms the same document,
+invoice sequence, issue time, message ID, payload digest and ZOI digest with the
+explicit subsequent-submission flag. This is network-outage evidence only; it
+must never be used as evidence for the legally separate issuing-device/VKR
+procedure.
+
 Copy `templates/furs-load-scenario.example.json` to a protected path, replace
 every placeholder and record the reviewed `expectedPeakPerSecond`. Set
 `FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired

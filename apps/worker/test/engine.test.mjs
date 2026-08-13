@@ -104,7 +104,10 @@ test('FURS-AUD-001: durable webhook jobs are signed-delivery boundaries with bou
 });
 
 test('FURS-OUT-001: temporary connection failure schedules bounded retry', async () => {
-  for (const code of ['FURS_TLS_TIMEOUT', 'FURS_TLS_RESPONSE_ABORTED']) {
+  for (const code of [
+    'FURS_TLS_TIMEOUT', 'FURS_TLS_RESPONSE_ABORTED', 'ECONNABORTED', 'ECONNREFUSED', 'ECONNRESET',
+    'EHOSTUNREACH', 'ENETUNREACH', 'ENOTFOUND', 'EPIPE', 'ETIMEDOUT', 'EAI_AGAIN'
+  ]) {
     const repo = repository();
     const client = { submit: async () => { throw new FursDomainError(code, 'temporary connection failure'); } };
     const result = await worker(repo, client).pollOnce();

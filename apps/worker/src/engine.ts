@@ -60,7 +60,11 @@ export interface PollResult {
 
 function failureKind(error: unknown): DeliveryFailureKind {
   const code = error instanceof FursDomainError ? error.code : error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
-  if (code === 'FURS_CLOCK_NOT_READY' || code === 'FURS_TLS_TIMEOUT' || code === 'FURS_TLS_RESPONSE_ABORTED' || code === 'ECONNRESET' || code === 'ENOTFOUND' || code === 'EAI_AGAIN') return 'CONNECTION_TEMPORARY';
+  if (
+    code === 'FURS_CLOCK_NOT_READY' || code === 'FURS_TLS_TIMEOUT' || code === 'FURS_TLS_RESPONSE_ABORTED' ||
+    code === 'ECONNABORTED' || code === 'ECONNREFUSED' || code === 'ECONNRESET' || code === 'EHOSTUNREACH' ||
+    code === 'ENETUNREACH' || code === 'ENOTFOUND' || code === 'EPIPE' || code === 'ETIMEDOUT' || code === 'EAI_AGAIN'
+  ) return 'CONNECTION_TEMPORARY';
   if (code === 'FURS_TLS_HTTP_RETRYABLE') return 'HTTP_SERVER_ERROR';
   if (code === 'FURS_TLS_HTTP_CLIENT') return 'HTTP_CLIENT_ERROR';
   if (typeof code === 'string' && (code.startsWith('FURS_JWS_') || code.startsWith('FURS_RESPONSE_') || code.startsWith('FURS_SCHEMA_'))) return 'INVALID_SIGNED_RESPONSE';
