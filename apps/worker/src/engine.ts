@@ -84,8 +84,8 @@ export class FiscalWorker {
 
   public constructor(options: WorkerOptions) {
     if (!/^[A-Za-z0-9._:-]{1,100}$/.test(options.workerId)) throw new Error('Worker ID is invalid');
-    if (options.concurrency !== undefined && (!Number.isSafeInteger(options.concurrency) || options.concurrency < 1 || options.concurrency > 100)) {
-      throw new Error('Worker concurrency must be between 1 and 100');
+    if (options.concurrency !== undefined && (!Number.isSafeInteger(options.concurrency) || options.concurrency < 1 || options.concurrency > 250)) {
+      throw new Error('Worker concurrency must be between 1 and 250');
     }
     this.#options = options;
   }

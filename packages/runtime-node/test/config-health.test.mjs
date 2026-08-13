@@ -26,7 +26,8 @@ test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schem
   assert.equal(loadRuntimeConfig({ ...base, FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: '100000' }).apiMaximumRequestsPerMinute, 100_000);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: '100001' }), /invalid/);
   assert.equal(loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '20' }).workerConcurrency, 20);
-  assert.throws(() => loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '101' }), /invalid/);
+  assert.equal(loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '250' }).workerConcurrency, 250);
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_WORKER_CONCURRENCY: '251' }), /invalid/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_WEBHOOK_URL: 'https://example.test/hook' }), /configured together/);
   assert.throws(() => loadRuntimeConfig({
     ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'http://example.test/hook',

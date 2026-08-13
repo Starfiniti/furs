@@ -49,7 +49,7 @@ function validate(options) {
   }
   const total = options.total ?? 30;
   const concurrency = options.concurrency ?? 3;
-  if (!Number.isSafeInteger(total) || total < 1 || total > 1000 || !Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 100 || concurrency > total) {
+  if (!Number.isSafeInteger(total) || total < 1 || total > 1000 || !Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 250 || concurrency > total) {
     throw new LoadEvidenceError('FURS_LOAD_CONFIG', 'Load total/concurrency is invalid');
   }
   return { scenario, total, concurrency };

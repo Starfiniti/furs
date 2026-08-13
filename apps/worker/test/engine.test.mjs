@@ -95,7 +95,7 @@ test('FURS-ID-002/OUT-001/REL-001: bounded worker concurrency processes distinct
   assert.equal(result.claimed, 3);
   assert.equal(result.confirmed, 3);
   assert.equal(repo.calls.filter(([name]) => name === 'confirm').length, 3);
-  assert.throws(() => worker(repo, client, { concurrency: 101 }), /between 1 and 100/);
+  assert.throws(() => worker(repo, client, { concurrency: 251 }), /between 1 and 250/);
 });
 
 test('FURS-AUD-001/PREM-001: a database confirmation failure retains verified response evidence', async () => {
