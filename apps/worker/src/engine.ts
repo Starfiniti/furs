@@ -44,6 +44,7 @@ export interface WorkerOptions {
   readonly clock?: () => Date;
   readonly random?: () => number;
   readonly maximumAttempts?: number;
+  readonly assertSubmissionReady?: () => void | Promise<void>;
 }
 
 export interface PollResult {
@@ -59,7 +60,7 @@ export interface PollResult {
 
 function failureKind(error: unknown): DeliveryFailureKind {
   const code = error instanceof FursDomainError ? error.code : error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
-  if (code === 'FURS_TLS_TIMEOUT' || code === 'ECONNRESET' || code === 'ENOTFOUND' || code === 'EAI_AGAIN') return 'CONNECTION_TEMPORARY';
+  if (code === 'FURS_CLOCK_NOT_READY' || code === 'FURS_TLS_TIMEOUT' || code === 'ECONNRESET' || code === 'ENOTFOUND' || code === 'EAI_AGAIN') return 'CONNECTION_TEMPORARY';
   if (code === 'FURS_TLS_HTTP_RETRYABLE') return 'HTTP_SERVER_ERROR';
   if (code === 'FURS_TLS_HTTP_CLIENT') return 'HTTP_CLIENT_ERROR';
   if (typeof code === 'string' && (code.startsWith('FURS_JWS_') || code.startsWith('FURS_RESPONSE_') || code.startsWith('FURS_SCHEMA_'))) return 'INVALID_SIGNED_RESPONSE';
@@ -123,6 +124,7 @@ export class FiscalWorker {
     const startedAt = this.#now();
     try {
       await this.#options.repository.startSending(document.id, this.#options.workerId);
+      await this.#options.assertSubmissionReady?.();
       const result = await this.#options.submissionClient.submit(document.payloadJson, document.messageId, document.operationClass);
       const finishedAt = this.#now();
       const common = this.#attempt(job, document, startedAt, finishedAt, digest(result.responsePayloadJson), result.certificateFingerprint256);

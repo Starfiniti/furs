@@ -23,7 +23,7 @@ async function main(): Promise<void> {
     }
   });
   registerOperatorConsole(app);
-  try { await runtime.refreshExternalHealth(); } catch { /* readiness stays false until verified echo */ }
+  try { await runtime.refreshExternalHealth(); } catch { /* readiness stays false until the NTP quorum succeeds */ }
   const timer = setInterval(() => { void runtime.refreshExternalHealth().catch(() => undefined); }, 60_000);
   timer.unref();
   const shutdown = async () => { clearInterval(timer); await app.close(); await runtime.close(); };

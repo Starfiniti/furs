@@ -97,6 +97,20 @@ test('FURS-OUT-001: temporary connection failure schedules bounded retry', async
   assert.equal(retry[2].toISOString(), '2026-08-12T10:35:02.000Z');
 });
 
+test('FURS-CLOCK-001/OUT-001: an unhealthy clock cannot reach FURS and schedules a bounded retry', async () => {
+  const repo = repository();
+  let submitted = false;
+  const client = { submit: async () => { submitted = true; throw new Error('must not submit'); } };
+  const result = await worker(repo, client, {
+    assertSubmissionReady: () => { throw new FursDomainError('FURS_CLOCK_NOT_READY', 'clock is stale'); }
+  }).pollOnce();
+  assert.equal(result.retried, 1);
+  assert.equal(submitted, false);
+  assert.equal(repo.calls.some(([name]) => name === 'start'), true);
+  const retry = repo.calls.find(([name]) => name === 'retry');
+  assert.equal(retry[1].errorCode, 'FURS_CLOCK_NOT_READY');
+});
+
 test('FURS-OUT-001: retryable HTTP status retries but deterministic client status stops', async () => {
   const retryRepo = repository();
   const retryResult = await worker(retryRepo, {

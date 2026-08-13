@@ -15,6 +15,13 @@ Create protected files outside the repository for:
 5. separate API and worker database passwords;
 6. reviewed FURS server and signed-response CA certificates.
 
+Select at least two independently operated NTP servers that are reachable over
+UDP/123 from both API and worker containers. Record the reviewed list in
+`FURS_NTP_SERVERS_JSON`; the runtime requires a quorum of two by default.
+Plain SNTP is not cryptographically authenticated, so production should prefer
+controlled infrastructure sources and restrict UDP/123 to the reviewed list.
+Record whether the deployment threat model requires authenticated NTS.
+
 Copy `templates/compliance-source-review.example.json` to a protected deployment
 configuration path, replace the reviewer placeholder after an actual human
 review, and mount it through `FURS_COMPLIANCE_SOURCE_MANIFEST_FILE`. The example
@@ -42,6 +49,7 @@ FURS_SERVER_CA_FILE
 FURS_RESPONSE_CA_FILE
 FURS_INVOICE_SCHEMA_SHA256
 FURS_RESPONSE_SCHEMA_SHA256
+FURS_NTP_SERVERS_JSON
 FURS_LEGAL_ENTITY_ID
 FURS_LEGAL_ENTITY_NAME
 FURS_LEGAL_ENTITY_TAX_NUMBER_FILE
@@ -79,7 +87,7 @@ on `127.0.0.1` by default.
 ## Health and metrics
 
 - `/health/live`: process liveness only.
-- `/health/ready`: PostgreSQL, certificate validity and recent FURS clock observation.
+- `/health/ready`: PostgreSQL, certificate validity and a recent quorum-backed SNTP clock observation.
 - `/metrics`: authenticated Prometheus output with redacted counts and ages.
 - `/console`: public static shell; all data calls still require a token.
 
@@ -97,6 +105,12 @@ and a durable dead-letter state; production destinations must use HTTPS.
 The worker writes a database heartbeat every ten seconds. Metrics expose only
 its age, and the supplied Prometheus rules alert when no worker is visible for
 more than 30 seconds.
+
+The worker applies the same certificate and fresh-clock gate before every FURS
+submission. Missing, stale, excessive-drift, unsynchronized, uncorrelated or
+out-of-bound NTP observations fail closed and use the bounded retry path without
+opening a connection to FURS. Webhook delivery does not depend on this fiscal
+submission gate.
 
 Import `deployment/prometheus-alerts.yml` and route critical alerts to a named
 operator. Keep the metric endpoint private because operational counts are internal.

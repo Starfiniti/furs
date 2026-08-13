@@ -266,3 +266,28 @@ results and named dated approvals. `release:verify` binds it to a clean exact
 commit and fails closed across every P0-P7 evidence class, including the current
 official-source state and final SPDX license. The deliberately incomplete example
 manifest can never serve as approval.
+
+## ADR-027 — Clock readiness uses a direct multi-server SNTP quorum
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+The FURS Echo endpoint does not provide the HTTP `Date` header previously
+assumed by runtime health monitoring. Runtime clock health therefore uses
+direct SNTP observations from an explicitly reviewed list of at least two
+servers. Responses must be synchronized, usable-stratum server replies,
+correlated to the exact request and within a bounded round trip. The median of
+a configured response quorum is compared with the maximum drift threshold.
+
+Clock observations expire after five minutes. API readiness and every worker
+submission fail closed when the observation is missing, stale or outside the
+drift bound; worker retries remain bounded and no FURS request is sent while the
+gate is closed. NTP server selection and network reachability remain deployment
+controls and must be included in operational review.
+
+Plain SNTP is not cryptographically authenticated. This control detects
+ordinary drift and unhealthy time sources; it is not proof against a network
+attacker controlling every configured path. Production approval must prefer
+controlled infrastructure time sources, restrict UDP/123 at the network edge
+and explicitly review whether authenticated NTS is required by the deployment
+threat model.

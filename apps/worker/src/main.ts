@@ -8,6 +8,9 @@ import { SignedWebhookClient } from './webhook-client.js';
 
 async function main(): Promise<void> {
   const runtime = await createNodeRuntime(loadRuntimeConfig());
+  try { await runtime.refreshExternalHealth(); } catch { /* submission gate remains closed until NTP quorum succeeds */ }
+  const healthTimer = setInterval(() => { void runtime.refreshExternalHealth().catch(() => undefined); }, 60_000);
+  healthTimer.unref();
   const submissionClient = new VerifiedFiscalSubmissionClient({
     signer: runtime.signer,
     transport: runtime.transport,
@@ -18,13 +21,17 @@ async function main(): Promise<void> {
     repository: runtime.repository,
     submissionClient,
     ...(runtime.webhook === undefined ? {} : { webhookClient: new SignedWebhookClient(runtime.webhook) }),
-    workerId: `${hostname().replace(/[^A-Za-z0-9._-]/g, '_')}:${process.pid}`
+    workerId: `${hostname().replace(/[^A-Za-z0-9._-]/g, '_')}:${process.pid}`,
+    assertSubmissionReady: () => {
+      runtime.health.assertCertificateReady();
+      runtime.health.assertClockReady();
+    }
   });
   const controller = new AbortController();
   process.once('SIGINT', () => controller.abort());
   process.once('SIGTERM', () => controller.abort());
   try { await worker.run(controller.signal); }
-  finally { await runtime.close(); }
+  finally { clearInterval(healthTimer); await runtime.close(); }
 }
 
 main().catch(() => {

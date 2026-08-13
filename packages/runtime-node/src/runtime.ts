@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
 import {
@@ -15,6 +14,7 @@ import {
 
 import type { RuntimeConfig } from './config.js';
 import { RuntimeHealthMonitor } from './health.js';
+import { observeNtpClock } from './sntp.js';
 
 async function secret(path: string): Promise<string> {
   const value = await readFile(path, 'utf8');
@@ -71,10 +71,17 @@ export async function createNodeRuntime(config: RuntimeConfig) {
   );
 
   async function echo(value: string): Promise<string> {
-    const started = new Date();
     const observation = await transport.echoWithMetadata(value);
-    health.observeEcho(observation, started);
     return observation.value;
+  }
+
+  async function refreshClockHealth(): Promise<void> {
+    health.observeClock(await observeNtpClock({
+      servers: config.ntpServers,
+      minimumResponses: config.ntpMinimumResponses,
+      timeoutMs: config.ntpTimeoutMs,
+      maximumClockSpreadMs: config.maximumClockDriftMs
+    }));
   }
 
   return Object.freeze({
@@ -92,7 +99,7 @@ export async function createNodeRuntime(config: RuntimeConfig) {
     repository,
     health,
     echo,
-    refreshExternalHealth: () => echo(`health-${randomUUID()}`),
+    refreshExternalHealth: refreshClockHealth,
     close: () => pool.end()
   });
 }

@@ -22,6 +22,9 @@ x-furs-service: &furs-service
     FURS_RESPONSE_SCHEMA_SHA256: ${FURS_RESPONSE_SCHEMA_SHA256:?set reviewed response schema digest}
     FURS_SERVER_CA_PATHS_JSON: '["/run/trust/furs-server-ca.pem"]'
     FURS_RESPONSE_CA_PATHS_JSON: '["/run/trust/furs-response-ca.pem"]'
+    FURS_NTP_SERVERS_JSON: '${FURS_NTP_SERVERS_JSON:?set reviewed NTP server list as JSON}'
+    FURS_NTP_MINIMUM_RESPONSES: ${FURS_NTP_MINIMUM_RESPONSES:-2}
+    FURS_NTP_TIMEOUT_MS: ${FURS_NTP_TIMEOUT_MS:-2000}
     FURS_MAX_CLOCK_DRIFT_MS: ${FURS_MAX_CLOCK_DRIFT_MS:-5000}
     FURS_CERTIFICATE_MINIMUM_DAYS: ${FURS_CERTIFICATE_MINIMUM_DAYS:-14}
     FURS_RUN_MIGRATIONS: "false"

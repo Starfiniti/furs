@@ -17,6 +17,9 @@ export interface RuntimeConfig {
   readonly apiHost: string;
   readonly apiPort: number;
   readonly maximumClockDriftMs: number;
+  readonly ntpServers: readonly string[];
+  readonly ntpMinimumResponses: number;
+  readonly ntpTimeoutMs: number;
   readonly certificateMinimumDaysRemaining: number;
   readonly webhookDestinationId: string | undefined;
   readonly webhookUrl: string | undefined;
@@ -36,6 +39,15 @@ function paths(env: NodeJS.ProcessEnv, name: string): readonly string[] {
     throw new Error(`${name} must contain at least one path`);
   }
   return Object.freeze([...value]);
+}
+
+function ntpServers(env: NodeJS.ProcessEnv): readonly string[] {
+  const values = paths(env, 'FURS_NTP_SERVERS_JSON');
+  if (values.length < 2 || new Set(values).size !== values.length) throw new Error('FURS_NTP_SERVERS_JSON must contain at least two distinct servers');
+  if (!values.every((value) => /^(?=.{1,253}$)(?:[A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?)$/.test(value))) {
+    throw new Error('FURS_NTP_SERVERS_JSON contains an invalid server name');
+  }
+  return values;
 }
 
 function integer(env: NodeJS.ProcessEnv, name: string, fallback: number, minimum: number, maximum: number): number {
@@ -68,6 +80,8 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     if (url.protocol !== 'https:' && !loopbackTestUrl) throw new Error('FURS_WEBHOOK_URL must use HTTPS (or loopback HTTP in test)');
     if (url.username || url.password || url.hash) throw new Error('FURS_WEBHOOK_URL must not contain credentials or a fragment');
   }
+  const configuredNtpServers = ntpServers(env);
+  const configuredNtpMinimumResponses = integer(env, 'FURS_NTP_MINIMUM_RESPONSES', 2, 2, configuredNtpServers.length);
   return Object.freeze({
     databaseUrl: required(env, 'DATABASE_URL'),
     databasePasswordFile: required(env, 'DATABASE_PASSWORD_FILE'),
@@ -87,6 +101,9 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     apiHost,
     apiPort: integer(env, 'FURS_API_PORT', 8080, 1, 65535),
     maximumClockDriftMs: integer(env, 'FURS_MAX_CLOCK_DRIFT_MS', 5000, 100, 60000),
+    ntpServers: configuredNtpServers,
+    ntpMinimumResponses: configuredNtpMinimumResponses,
+    ntpTimeoutMs: integer(env, 'FURS_NTP_TIMEOUT_MS', 2000, 250, 10000),
     certificateMinimumDaysRemaining: integer(env, 'FURS_CERTIFICATE_MINIMUM_DAYS', 14, 1, 180),
     webhookDestinationId: env.FURS_WEBHOOK_DESTINATION_ID,
     webhookUrl: env.FURS_WEBHOOK_URL,
