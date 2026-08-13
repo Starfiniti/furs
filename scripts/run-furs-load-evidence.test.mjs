@@ -37,11 +37,12 @@ test('FURS-ID-002/REL-001: load evidence proves unique documents and identities'
   });
   assert.equal(evidence.uniqueDocuments, 6);
   assert.equal(evidence.uniqueFiscalIdentities, 6);
-  assert.equal(messageIds.size, 6);
+  assert.equal(messageIds.size, 7);
   assert.equal(evidence.duplicateIdentities, 0);
   assert.equal(evidence.expectedPeakPerSecond, 0.5);
   assert.ok(evidence.achievedPerSecond >= 1.5);
   assert.equal(evidence.targetAchieved, true);
+  assert.equal(evidence.submissionPreflightConfirmed, true);
   assert.match(evidence.scenarioSha256, /^[a-f0-9]{64}$/);
   assert.match(evidence.evidenceSha256, /^[a-f0-9]{64}$/);
 });

@@ -49,7 +49,7 @@ function validate(options) {
   }
   const total = options.total ?? 30;
   const concurrency = options.concurrency ?? 3;
-  if (!Number.isSafeInteger(total) || total < 1 || total > 1000 || !Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 20 || concurrency > total) {
+  if (!Number.isSafeInteger(total) || total < 1 || total > 1000 || !Number.isSafeInteger(concurrency) || concurrency < 1 || concurrency > 100 || concurrency > total) {
     throw new LoadEvidenceError('FURS_LOAD_CONFIG', 'Load total/concurrency is invalid');
   }
   return { scenario, total, concurrency };
@@ -98,6 +98,16 @@ export async function runFursLoadEvidence(options) {
   const echoValue = `load-${createHash('sha256').update(scenario.policyVersion).digest('hex').slice(0, 24)}`;
   const echo = await api(fetchImpl, root, options.token, 'v1/furs/echo', { method: 'POST', body: { value: echoValue } });
   if (echo.value !== echoValue) throw new LoadEvidenceError('FURS_LOAD_ECHO', 'Load preflight echo failed');
+  const preflightRequest = { ...scenario.request, messageId: randomUUID(), issueLocalTime: localTime(new Date()) };
+  let preflight = await api(fetchImpl, root, options.token, 'v1/fiscal-invoices', {
+    method: 'POST', body: preflightRequest,
+    headers: { 'idempotency-key': `load-preflight:${scenario.policyVersion}:${randomUUID()}` }
+  });
+  while (!['CONFIRMED', 'REJECTED', 'MANUAL_REVIEW'].includes(preflight.status)) {
+    await sleep(options.pollIntervalMs ?? 250);
+    preflight = await api(fetchImpl, root, options.token, `v1/fiscal-invoices/${encodeURIComponent(preflight.id)}`);
+  }
+  if (preflight.status !== 'CONFIRMED') throw new LoadEvidenceError('FURS_LOAD_PREFLIGHT', 'Worker submission preflight did not confirm');
   let next = 0;
   const samples = [];
   const loadStarted = nowMilliseconds();
@@ -135,6 +145,7 @@ export async function runFursLoadEvidence(options) {
     policyVersionSha256: createHash('sha256').update(scenario.policyVersion).digest('hex'),
     sourceVersion: scenario.sourceVersion,
     total, concurrency, terminalStatus: scenario.expectedTerminalStatus,
+    submissionPreflightConfirmed: true,
     uniqueDocuments: total, uniqueFiscalIdentities: total, duplicateIdentities: 0,
     expectedPeakPerSecond: scenario.expectedPeakPerSecond,
     requiredPerSecond,
