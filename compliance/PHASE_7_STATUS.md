@@ -1,6 +1,6 @@
 # Phase 7 implementation status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Gate status: evidence automation implemented; external executions pending
 
 ## Implemented evidence controls
@@ -51,13 +51,19 @@ files, never command-line arguments or environment values.
 - OpenAPI consistency, PHP syntax and four deployment/CI YAML files pass.
 - Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
   integrity rehearsals passed with redacted local evidence.
+- A real FURS test PKCS#12 passed strict TLS 1.3 Echo, missing/wrong-client
+  rejection and verified signed-rejection controls. Raw credentials, requests
+  and JWS tokens remain outside the repository and retained evidence is redacted.
+- GitHub Actions built the release image, uploaded its CycloneDX SBOM and passed
+  the HIGH/CRITICAL Trivy gate on commit `29467e3`.
 
 ## External gates still required
 
 The local PostgreSQL and logical-restore runners have now executed against a
 temporary native PostgreSQL 17.10 server. Their local report is not production
-PITR or named reviewer approval. The requested FURS test certificate and Docker
-remain unavailable. Official FURS operations, container/PITR, rotation, load and
+PITR or named reviewer approval. The test certificate, initial official FURS
+cryptographic evidence and CI container scan are available. Business-premise,
+confirmed-invoice, correction, subsequent-submission, PITR, rotation, load and
 48-hour soak evidence must still be executed and reviewed before production
 approval. The technical retention hold is documented, but the data
 controller/legal retention and privacy schedule also requires approval.

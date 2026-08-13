@@ -54,23 +54,29 @@ FURS certification or endorsement.
 | Official source check | Core technical/schema/law sources unchanged; SPOT online-retail change remains under documented human review |
 | Native PostgreSQL 17.10 | 128 unique allocations, 64-way idempotency, exclusive claims and crash recovery passed |
 | Separate logical restore | Read-only high-water, payload-hash, migration and referential checks passed |
+| Official FURS test transport (13 August) | TLS 1.3 Echo passed twice; missing and unrelated client certificates were rejected |
+| Official signed rejection (13 August) | FURS `S005`; RS256, chain, signer pin, schema and MessageID verified |
+| GitHub release image | Build, CycloneDX SBOM and HIGH/CRITICAL Trivy gate passed on commit `29467e3` |
 
 The source checker therefore intentionally remains non-green for the affected
 online-retail payment-policy release path. Its failure is a retained compliance
 freeze, not a failed core protocol test.
 
-Docker is not installed on this workstation, so image build and
-`docker compose config` runtime interpolation were not executed. A temporary
-native PostgreSQL 17.10 server was executed successfully; its synthetic local
-concurrency and logical-restore results are recorded in
+Docker is not installed on this workstation, so local image build and
+`docker compose config` runtime interpolation were not executed. GitHub Actions
+did build and scan the release image successfully. A temporary native PostgreSQL
+17.10 server was executed successfully; its synthetic local concurrency and
+logical-restore results are recorded in
 `LOCAL_POSTGRES_EVIDENCE_2026-08-12.md`. Production PITR and reviewed evidence
 remain separate release gates.
 
 ## External and human gates still blocking production
 
-1. Receive and securely install the requested FURS test certificate.
-2. Pass strict echo, business-premise lifecycle, invoice, rejection,
-   correction and subsequent-submission tests in the official environment.
+1. Complete business-premise lifecycle, confirmed invoice, correction and
+   subsequent-submission tests in the official environment. Strict Echo and a
+   cryptographically verified signed rejection passed on 13 August 2026.
+2. Obtain an independent cryptographic review of the Phase 1 implementation and
+   retained redacted evidence.
 3. Review the changed SPOT online-retail page recorded in
    `SOURCE_CHANGE_REVIEW_2026-08-12.md`; only then accept its new digest.
 4. Obtain accountant/tax-specialist signoff for payment, refund/correction and

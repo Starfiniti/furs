@@ -4,8 +4,8 @@ Production remains blocked until every applicable item has dated evidence and a
 named reviewer. A green local test suite is necessary but not sufficient.
 
 - [ ] Official source checker is green and source register is reviewed.
-- [ ] FURS test certificate metadata is recorded without storing secret material.
-- [ ] Strict mTLS echo succeeds; missing/wrong client certificate fails.
+- [x] FURS test certificate metadata is recorded without storing secret material.
+- [x] Strict mTLS echo succeeds; missing/wrong client certificate fails.
 - [ ] Official test invoices cover standard, rejection, timeout, subsequent submit and correction.
 - [ ] Business-premise register, update and close succeed in the test environment.
 - [ ] Signed responses reject tampered header, payload, signature and trust chains.
