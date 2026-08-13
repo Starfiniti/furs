@@ -1,5 +1,6 @@
 import pg from 'pg';
 import type { PoolConfig, PoolClient, QueryResultRow } from 'pg';
+import { parse as parseConnectionString } from 'pg-connection-string';
 
 export interface SqlResult<TRow> {
   readonly rows: TRow[];
@@ -64,12 +65,30 @@ class PgClientAdapter implements SqlClient {
   }
 }
 
+/**
+ * node-postgres parses `connectionString` after the other Pool options. When a
+ * URL deliberately omits its password, the parser returns an empty password
+ * and can overwrite a separately mounted secret. Parse the URL first and then
+ * apply the explicit password so it remains non-URL secret material.
+ */
+export function normalizePostgresPoolConfig(config: PoolConfig): PoolConfig {
+  if (typeof config.connectionString !== 'string' || config.password === undefined) {
+    return config;
+  }
+  return {
+    ...config,
+    ...parseConnectionString(config.connectionString),
+    connectionString: undefined,
+    password: config.password
+  } as PoolConfig;
+}
+
 export function createPostgresPool(config: PoolConfig): pg.Pool {
   return new pg.Pool({
     max: 10,
     connectionTimeoutMillis: 5_000,
     idleTimeoutMillis: 60_000,
     allowExitOnIdle: true,
-    ...config
+    ...normalizePostgresPoolConfig(config)
   });
 }
