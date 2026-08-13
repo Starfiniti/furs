@@ -26,6 +26,9 @@ test('FURS-REL-001: soak runner creates fresh identities and a chained redacted 
   });
   assert.equal(evidence.cycles, 2);
   assert.equal(evidence.operations, 2);
+  assert.equal(evidence.failures, 0);
+  assert.equal(typeof evidence.durationHours, 'number');
+  assert.equal(evidence.completedRequestedDuration, false);
   assert.match(evidence.evidenceChainSha256, /^[a-f0-9]{64}$/);
   assert.notEqual(observed[0].operations[0].request.messageId, observed[1].operations[0].request.messageId);
   assert.notEqual(observed[0].operations[0].idempotencyKey, observed[1].operations[0].idempotencyKey);
