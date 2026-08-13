@@ -134,6 +134,7 @@ services:
       <<: *furs-environment
       DATABASE_URL: postgresql://furs_worker_login@postgres:5432/furs
       DATABASE_PASSWORD_FILE: /run/secrets/furs-worker-database-password
+      FURS_WORKER_CONCURRENCY: ${FURS_WORKER_CONCURRENCY:-1}
       FURS_WEBHOOK_DESTINATION_ID: ${FURS_WEBHOOK_DESTINATION_ID:?set webhook destination ID}
       FURS_WEBHOOK_URL: ${FURS_WEBHOOK_URL:?set HTTPS webhook URL}
       FURS_WEBHOOK_SECRET_FILE: /run/secrets/furs-webhook-secret

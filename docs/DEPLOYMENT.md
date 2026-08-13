@@ -23,6 +23,10 @@ bearer credential. Set it explicitly from the reviewed peak, polling behavior
 and reverse-proxy controls; accepted values are `10` through `100000`. A load
 test may use a higher protected test-only value, but production still requires
 edge rate limits, authentication and capacity evidence for the selected value.
+`FURS_WORKER_CONCURRENCY` defaults to `1` and allows `1` through `100`
+simultaneous leased deliveries in one worker process. Raise it only from measured
+FURS latency, database-pool capacity and an approved load target. PostgreSQL
+leases and immutable identities remain authoritative at every setting.
 
 Plain SNTP is not cryptographically authenticated, so production should prefer
 controlled infrastructure sources and restrict UDP/123 to the reviewed list.

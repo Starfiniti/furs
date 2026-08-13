@@ -67,6 +67,37 @@ test('FURS-AUD-001: verified confirmation persists hashes and the original ident
   assert.equal(confirmation[2], '4e64a93a-40fa-4c02-afb1-488534b85e4d');
 });
 
+test('FURS-ID-002/OUT-001/REL-001: bounded worker concurrency processes distinct leased identities in parallel', async () => {
+  const jobs = Array.from({ length: 3 }, (_, index) => ({
+    ...job, id: String(index + 10), documentId: `019ff57a-f30d-7290-9bb9-${String(index + 10).padStart(12, '0')}`
+  }));
+  const documents = new Map(jobs.map((entry, index) => [entry.documentId, {
+    ...document, id: entry.documentId, invoiceSequence: String(index + 100),
+    messageId: `019ff57a-f30d-7290-9bb8-${String(index + 10).padStart(12, '0')}`
+  }]));
+  const repo = repository();
+  repo.claimOutboxJobs = async (_workerId, limit) => { assert.equal(limit, 3); return jobs; };
+  repo.getFiscalDocument = async (id) => documents.get(id);
+  let inFlight = 0;
+  let maximumInFlight = 0;
+  let release;
+  const barrier = new Promise((resolve) => { release = resolve; });
+  const client = { submit: async () => {
+    inFlight += 1;
+    maximumInFlight = Math.max(maximumInFlight, inFlight);
+    if (inFlight === 3) release();
+    await barrier;
+    inFlight -= 1;
+    return { kind: 'confirmed', eor: '4e64a93a-40fa-4c02-afb1-488534b85e4d', responsePayloadJson: '{}', certificateFingerprint256: fingerprint };
+  } };
+  const result = await worker(repo, client, { concurrency: 3 }).pollOnce();
+  assert.equal(maximumInFlight, 3);
+  assert.equal(result.claimed, 3);
+  assert.equal(result.confirmed, 3);
+  assert.equal(repo.calls.filter(([name]) => name === 'confirm').length, 3);
+  assert.throws(() => worker(repo, client, { concurrency: 101 }), /between 1 and 100/);
+});
+
 test('FURS-AUD-001/PREM-001: a database confirmation failure retains verified response evidence', async () => {
   const repo = repository();
   const premise = { ...document, operationClass: 'BUSINESS_PREMISE', kind: 'PREMISE', electronicDeviceId: undefined, invoiceSequence: undefined, zoi: undefined };
