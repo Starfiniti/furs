@@ -67,6 +67,23 @@ test('FURS-AUD-001: verified confirmation persists hashes and the original ident
   assert.equal(confirmation[2], '4e64a93a-40fa-4c02-afb1-488534b85e4d');
 });
 
+test('FURS-AUD-001/PREM-001: a database confirmation failure retains verified response evidence', async () => {
+  const repo = repository();
+  const premise = { ...document, operationClass: 'BUSINESS_PREMISE', kind: 'PREMISE', electronicDeviceId: undefined, invoiceSequence: undefined, zoi: undefined };
+  repo.getFiscalDocument = async () => premise;
+  repo.confirmBusinessPremise = async () => { throw Object.assign(new Error('database permission denied'), { code: '42501' }); };
+  const client = { submit: async () => ({
+    kind: 'confirmed', eor: undefined, responsePayloadJson: '{"verified":"response"}', certificateFingerprint256: fingerprint
+  }) };
+  const result = await worker(repo, client).pollOnce();
+  assert.equal(result.manualReview, 1);
+  const manual = repo.calls.find(([name]) => name === 'manual');
+  assert.ok(manual);
+  assert.match(manual[1].responseSha256, /^[a-f0-9]{64}$/);
+  assert.equal(manual[1].certificateFingerprint256, fingerprint);
+  assert.equal(manual[1].errorCode, '42501');
+});
+
 test('FURS-AUD-001: durable webhook jobs are signed-delivery boundaries with bounded retry', async () => {
   const repo = repository();
   const webhookJob = { ...job, jobType: 'WEBHOOK' };

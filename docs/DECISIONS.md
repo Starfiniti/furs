@@ -291,3 +291,26 @@ attacker controlling every configured path. Production approval must prefer
 controlled infrastructure time sources, restrict UDP/123 at the network edge
 and explicitly review whether authenticated NTS is required by the deployment
 threat model.
+
+## ADR-028 — Fiscal DB privileges use narrow executable boundaries
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+The live FURS test path exposed two PostgreSQL privilege assumptions that unit
+tests alone did not reproduce. Premise confirmation requires worker `SELECT` on
+the internal premise identifier in addition to its existing lifecycle `UPDATE`.
+Invoice sequence reservation uses row locks, which require broader table rights
+than the API role should hold.
+
+The worker receives only `SELECT (id)` on `business_premises`. Sequence locking
+and allocation execute through the exact owner-controlled
+`reserve_invoice_sequence(uuid,text,text,text)` function with `SECURITY DEFINER`,
+a fixed `pg_catalog, furs` search path, revoked `PUBLIC` execution and explicit
+`furs_api` execution. The API receives no general mutation right on legal
+entities. Operator-created retry jobs seed their counter from the append-only
+maximum fiscal attempt so attempt identities never restart or collide.
+
+When FURS response verification succeeds but the terminal DB transaction fails,
+the fallback manual-review attempt preserves the response hash and verified
+certificate fingerprint. Raw signed tokens remain excluded.

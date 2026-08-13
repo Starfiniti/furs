@@ -122,10 +122,12 @@ export class FiscalWorker {
     const document = await this.#options.repository.getFiscalDocument(job.documentId);
     if (document === undefined) throw new Error('Claimed outbox document does not exist');
     const startedAt = this.#now();
+    let verifiedResponse: Awaited<ReturnType<FiscalSubmissionClient['submit']>> | undefined;
     try {
       await this.#options.repository.startSending(document.id, this.#options.workerId);
       await this.#options.assertSubmissionReady?.();
       const result = await this.#options.submissionClient.submit(document.payloadJson, document.messageId, document.operationClass);
+      verifiedResponse = result;
       const finishedAt = this.#now();
       const common = this.#attempt(job, document, startedAt, finishedAt, digest(result.responsePayloadJson), result.certificateFingerprint256);
       if (result.kind === 'confirmed') {
@@ -148,7 +150,11 @@ export class FiscalWorker {
     } catch (error) {
       const finishedAt = this.#now();
       const kind = failureKind(error);
-      const common = this.#attempt(job, document, startedAt, finishedAt);
+      const common = this.#attempt(
+        job, document, startedAt, finishedAt,
+        verifiedResponse === undefined ? undefined : digest(verifiedResponse.responsePayloadJson),
+        verifiedResponse?.certificateFingerprint256
+      );
       const code = errorCode(error);
       if (kind === 'CONNECTION_TEMPORARY' || kind === 'HTTP_SERVER_ERROR') {
         const decision = decideRetry({ attemptNumber: job.attemptCount, maximumAttempts: this.#options.maximumAttempts ?? 8 });

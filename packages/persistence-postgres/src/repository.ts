@@ -473,8 +473,9 @@ export class PostgresFiscalRepository {
         throw new FursDomainError('FURS_RETRY_STATE', 'Document is not eligible for an operator-requested retry');
       }
       await client.query(
-        `insert into furs.outbox_jobs (document_id, job_type, status, available_at)
-         values ($1, 'SUBMIT', 'PENDING', clock_timestamp())
+        `insert into furs.outbox_jobs (document_id, job_type, status, available_at, attempt_count)
+         values ($1, 'SUBMIT', 'PENDING', clock_timestamp(),
+           coalesce((select max(attempt_number) from furs.fiscal_attempts where document_id = $1), 0))
          on conflict (document_id) where job_type in ('SUBMIT','RECONCILE') and status in ('PENDING','PROCESSING','RETRY')
          do update set available_at = least(furs.outbox_jobs.available_at, excluded.available_at)`,
         [documentId]
@@ -501,8 +502,9 @@ export class PostgresFiscalRepository {
       );
       for (const document of documents.rows) {
         await client.query(
-          `insert into furs.outbox_jobs (document_id, job_type, status, available_at)
-           values ($1, 'RECONCILE', 'PENDING', clock_timestamp())
+          `insert into furs.outbox_jobs (document_id, job_type, status, available_at, attempt_count)
+           values ($1, 'RECONCILE', 'PENDING', clock_timestamp(),
+             coalesce((select max(attempt_number) from furs.fiscal_attempts where document_id = $1), 0))
            on conflict (document_id) where job_type in ('SUBMIT','RECONCILE') and status in ('PENDING','PROCESSING','RETRY')
            do nothing`,
           [document.id]
