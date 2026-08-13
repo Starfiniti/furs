@@ -1,5 +1,7 @@
 # Checklist for Slovenian accountant/tax/legal review
 
+Slovenian, prefilled review pack: [Pravno-računovodski paket](../docs/PRAVNO_RACUNOVODSKI_PAKET_SL.md).
+
 Project: Starfiniti FURS Kit
 Version/commit: ____________________
 Reviewer: ____________________
