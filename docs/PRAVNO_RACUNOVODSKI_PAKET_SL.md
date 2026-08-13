@@ -47,6 +47,9 @@ vsebina računov se vedno potrdijo za konkretnega zavezanca.
    uradno obvestilo in način objave, ne pa lastne grafične zamenjave uradne priloge.
 5. [Potrditev strokovnega pregleda](../templates/potrditev-pravno-racunovodskega-pregleda-sl.md)
    zabeleži odobrene, blokirane in ročne scenarije ter odgovorne osebe.
+6. [Produkcijski vstopni podatki](../templates/produkcijski-vstopni-podatki-sl.md)
+   zberejo vse poslovne, infrastrukturne in operativne odločitve, ki jih ni varno
+   ugibati ali privzeti v kodi.
 
 ## Vprašanja, na katera mora pregled odgovoriti
 
