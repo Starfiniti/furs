@@ -22,6 +22,7 @@ async function main(): Promise<void> {
     submissionClient,
     ...(runtime.webhook === undefined ? {} : { webhookClient: new SignedWebhookClient(runtime.webhook) }),
     workerId: `${hostname().replace(/[^A-Za-z0-9._-]/g, '_')}:${process.pid}`,
+    concurrency: runtime.config.workerConcurrency,
     assertSubmissionReady: () => {
       runtime.health.assertCertificateReady();
       runtime.health.assertClockReady();

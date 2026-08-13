@@ -40,7 +40,7 @@ export interface WorkerOptions {
   readonly submissionClient: FiscalSubmissionClient;
   readonly webhookClient?: WebhookDeliveryClient;
   readonly workerId: string;
-  readonly batchSize?: number;
+  readonly concurrency?: number;
   readonly clock?: () => Date;
   readonly random?: () => number;
   readonly maximumAttempts?: number;
@@ -60,7 +60,11 @@ export interface PollResult {
 
 function failureKind(error: unknown): DeliveryFailureKind {
   const code = error instanceof FursDomainError ? error.code : error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
-  if (code === 'FURS_CLOCK_NOT_READY' || code === 'FURS_TLS_TIMEOUT' || code === 'ECONNRESET' || code === 'ENOTFOUND' || code === 'EAI_AGAIN') return 'CONNECTION_TEMPORARY';
+  if (
+    code === 'FURS_CLOCK_NOT_READY' || code === 'FURS_TLS_TIMEOUT' || code === 'FURS_TLS_RESPONSE_ABORTED' ||
+    code === 'ECONNABORTED' || code === 'ECONNREFUSED' || code === 'ECONNRESET' || code === 'EHOSTUNREACH' ||
+    code === 'ENETUNREACH' || code === 'ENOTFOUND' || code === 'EPIPE' || code === 'ETIMEDOUT' || code === 'EAI_AGAIN'
+  ) return 'CONNECTION_TEMPORARY';
   if (code === 'FURS_TLS_HTTP_RETRYABLE') return 'HTTP_SERVER_ERROR';
   if (code === 'FURS_TLS_HTTP_CLIENT') return 'HTTP_CLIENT_ERROR';
   if (typeof code === 'string' && (code.startsWith('FURS_JWS_') || code.startsWith('FURS_RESPONSE_') || code.startsWith('FURS_SCHEMA_'))) return 'INVALID_SIGNED_RESPONSE';
@@ -80,6 +84,9 @@ export class FiscalWorker {
 
   public constructor(options: WorkerOptions) {
     if (!/^[A-Za-z0-9._:-]{1,100}$/.test(options.workerId)) throw new Error('Worker ID is invalid');
+    if (options.concurrency !== undefined && (!Number.isSafeInteger(options.concurrency) || options.concurrency < 1 || options.concurrency > 250)) {
+      throw new Error('Worker concurrency must be between 1 and 250');
+    }
     this.#options = options;
   }
 
@@ -88,13 +95,13 @@ export class FiscalWorker {
   }
 
   public async pollOnce(): Promise<PollResult> {
-    const jobs = await this.#options.repository.claimOutboxJobs(this.#options.workerId, this.#options.batchSize ?? 10);
+    const jobs = await this.#options.repository.claimOutboxJobs(this.#options.workerId, this.#options.concurrency ?? 1);
     const counts = {
       claimed: jobs.length, confirmed: 0, rejected: 0, retried: 0, manualReview: 0,
       webhookDelivered: 0, webhookRetried: 0, webhookDead: 0
     };
-    for (const job of jobs) {
-      const outcome = await this.#process(job);
+    const outcomes = await Promise.all(jobs.map((job) => this.#process(job)));
+    for (const outcome of outcomes) {
       counts[outcome] += 1;
     }
     return Object.freeze(counts);
@@ -122,10 +129,12 @@ export class FiscalWorker {
     const document = await this.#options.repository.getFiscalDocument(job.documentId);
     if (document === undefined) throw new Error('Claimed outbox document does not exist');
     const startedAt = this.#now();
+    let verifiedResponse: Awaited<ReturnType<FiscalSubmissionClient['submit']>> | undefined;
     try {
       await this.#options.repository.startSending(document.id, this.#options.workerId);
       await this.#options.assertSubmissionReady?.();
       const result = await this.#options.submissionClient.submit(document.payloadJson, document.messageId, document.operationClass);
+      verifiedResponse = result;
       const finishedAt = this.#now();
       const common = this.#attempt(job, document, startedAt, finishedAt, digest(result.responsePayloadJson), result.certificateFingerprint256);
       if (result.kind === 'confirmed') {
@@ -148,7 +157,11 @@ export class FiscalWorker {
     } catch (error) {
       const finishedAt = this.#now();
       const kind = failureKind(error);
-      const common = this.#attempt(job, document, startedAt, finishedAt);
+      const common = this.#attempt(
+        job, document, startedAt, finishedAt,
+        verifiedResponse === undefined ? undefined : digest(verifiedResponse.responsePayloadJson),
+        verifiedResponse?.certificateFingerprint256
+      );
       const code = errorCode(error);
       if (kind === 'CONNECTION_TEMPORARY' || kind === 'HTTP_SERVER_ERROR') {
         const decision = decideRetry({ attemptNumber: job.attemptCount, maximumAttempts: this.#options.maximumAttempts ?? 8 });

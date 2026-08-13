@@ -291,3 +291,131 @@ attacker controlling every configured path. Production approval must prefer
 controlled infrastructure time sources, restrict UDP/123 at the network edge
 and explicitly review whether authenticated NTS is required by the deployment
 threat model.
+
+## ADR-028 — Fiscal DB privileges use narrow executable boundaries
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+The live FURS test path exposed two PostgreSQL privilege assumptions that unit
+tests alone did not reproduce. Premise confirmation requires worker `SELECT` on
+the internal premise identifier in addition to its existing lifecycle `UPDATE`.
+Invoice sequence reservation uses row locks, which require broader table rights
+than the API role should hold.
+
+The worker receives only `SELECT (id)` on `business_premises`. Sequence locking
+and allocation execute through the exact owner-controlled
+`reserve_invoice_sequence(uuid,text,text,text)` function with `SECURITY DEFINER`,
+a fixed `pg_catalog, furs` search path, revoked `PUBLIC` execution and explicit
+`furs_api` execution. The API receives no general mutation right on legal
+entities. Operator-created retry jobs seed their counter from the append-only
+maximum fiscal attempt so attempt identities never restart or collide.
+
+When FURS response verification succeeds but the terminal DB transaction fails,
+the fallback manual-review attempt preserves the response hash and verified
+certificate fingerprint. Raw signed tokens remain excluded.
+
+## ADR-029 — Alert routing evidence is scoped to the exercised receiver
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Prometheus rule evaluation and Alertmanager notification routing are separate
+controls. `promtool` tests prove the committed expressions and hold times. The
+alert-delivery evidence runner then uses an official checksum-verified
+Alertmanager binary and a loopback webhook to prove that every required release
+category traverses the actual grouping and notification path.
+
+Local loopback evidence must record `productionRoutingVerified: false`. It cannot
+approve a production receiver, on-call escalation, authentication, network
+policy or delivery service. Those remain named deployment evidence rather than a
+property inferred from a successful local webhook.
+
+## ADR-030 — Inbound cryptographic transports have explicit semantic and size bounds
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Strict TLS and a valid signature do not make every peer-controlled byte sequence
+safe to process. FURS request and response bodies are bounded to 1 MiB, and
+response stream errors/aborts settle through explicit fail-closed outcomes.
+Interrupted responses are connection failures eligible only for the existing
+bounded immutable retry path; an oversized response is not retried as success.
+
+JWS verification supports the documented Base64URL RS256 form only. Unsupported
+critical-header semantics and `b64:false` are rejected even when a token is
+otherwise correctly signed. Configured mTLS and webhook URLs also reject query
+strings so credentials cannot migrate from protected files into URLs.
+
+## ADR-031 — Device-failure evidence cannot be inferred from network retries
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+A technical issuing-device drill uses a dedicated test-device identity, marks it
+non-operational and submits one fresh ordinary command with
+`subsequentSubmit: false`. Passing evidence requires the explicit
+`FURS_DEVICE_FALLBACK_REQUIRED` boundary before any fiscal document or outbox job
+exists, and the device remains non-operational after the drill.
+
+This result proves only the software boundary. It must record human VKR execution
+and production approval as false until a named operator and Slovenian
+accounting/legal reviewer complete the paper/sales-book procedure and later
+reconciliation. A connectivity-outage retry or ordinary FURS test invoice cannot
+substitute for that evidence.
+
+## ADR-032 — Worker concurrency and PostgreSQL claim capacity are one bound
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+The worker's configured concurrency is also the maximum atomic PostgreSQL
+`SKIP LOCKED` outbox claim size. Configuration, worker validation, repository
+validation and the digest-locked database function therefore share one hard
+upper bound. A real PostgreSQL regression test must exercise a claim above the
+former ceiling so a configuration-only change cannot silently fail at runtime.
+
+The default remains 1. The upper bound of 250 exists for explicitly approved,
+bounded Phase 7 evidence and is not a production sizing recommendation. A
+failed throughput result does not justify increasing this bound or repeating a
+shared-service load test without a capacity review and new approval.
+
+## ADR-033 — Outage recovery accepts a retry race only after confirmation proof
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+After connectivity returns, the normal durable worker remains authoritative and
+may confirm a retained subsequent submission before an evidence runner requests
+an operator retry. The runner first reads the immutable document. It skips an
+explicit retry when that document is already confirmed.
+
+A retry HTTP 409 is not success by itself. It is accepted only when a fresh,
+authenticated read proves the exact original document is `CONFIRMED`; the final
+evidence must still match document, sequence, issue time, message, payload and
+ZOI identities, verify the signed response and observe an empty outbox. Any
+other conflict or identity change fails closed.
+
+## ADR-034 — Persistent mTLS connections are bounded and runtime-owned
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Creating and destroying an HTTPS agent for every invoice forced a new mutually
+authenticated TLS connection for every request and was a measured local
+transport bottleneck. Each runtime now owns one persistent agent whose active,
+total and free socket counts share the configured `1..250` bound (default 32).
+Runtime shutdown destroys the agent explicitly.
+
+Connection reuse does not alter the trust boundary: certificate-chain and
+hostname verification remain strict, the client certificate is still required,
+TLS remains limited to versions 1.2 and 1.3, response size remains bounded and
+TLS session caching remains disabled. A failed or oversized response cannot be
+converted to success, and fiscal identity, immutable retry and durable-outbox
+rules are unchanged.
+
+Loopback fixture evidence may demonstrate the transport improvement but cannot
+close the official Phase 7 throughput gate. Another bounded FURS test load needs
+new explicit approval. The documented FURS batch endpoint remains deferred until
+its own requirements, schemas, cryptographic mapping and official evidence are
+reviewed.

@@ -11,6 +11,7 @@ export interface StrictMtlsRequest {
   readonly body: string;
   readonly secureContext: SecureContext;
   readonly timeoutMilliseconds?: number;
+  readonly agent?: Agent;
 }
 
 export interface StrictMtlsResponse {
@@ -42,6 +43,7 @@ function assertHttpsEndpoint(endpoint: URL): void {
     endpoint.protocol !== 'https:' ||
     endpoint.username !== '' ||
     endpoint.password !== '' ||
+    endpoint.search !== '' ||
     endpoint.hash !== ''
   ) {
     throw new FursDomainError('FURS_TLS_ENDPOINT', 'mTLS endpoint must be a credential-free HTTPS URL');
@@ -51,13 +53,17 @@ function assertHttpsEndpoint(endpoint: URL): void {
 /** Low-level strict mTLS primitive. Production callers should use FursMtlsTransport. */
 export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<StrictMtlsResponse> {
   assertHttpsEndpoint(input.endpoint);
+  if (typeof input.body !== 'string' || Buffer.byteLength(input.body, 'utf8') > MAX_RESPONSE_BYTES) {
+    throw new FursDomainError('FURS_TLS_REQUEST_SIZE', 'FURS request body exceeds the allowed size');
+  }
   const timeoutMilliseconds = input.timeoutMilliseconds ?? 15_000;
   if (!Number.isInteger(timeoutMilliseconds) || timeoutMilliseconds < 1 || timeoutMilliseconds > 120_000) {
     throw new FursDomainError('FURS_TLS_TIMEOUT', 'mTLS timeout must be between 1 and 120000 milliseconds');
   }
 
   return new Promise((resolve, reject) => {
-    const agent = new Agent({
+    const ownsAgent = input.agent === undefined;
+    const agent = input.agent ?? new Agent({
       secureContext: input.secureContext,
       rejectUnauthorized: true,
       minVersion: 'TLSv1.2',
@@ -82,24 +88,38 @@ export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<Strict
       (response) => {
         const chunks: Buffer[] = [];
         let length = 0;
+        let responseFinished = false;
         const tlsProtocol =
           response.socket instanceof TLSSocket ? response.socket.getProtocol() : null;
 
+        const failResponse = (error: Error): void => {
+          if (responseFinished) return;
+          responseFinished = true;
+          if (ownsAgent) agent.destroy();
+          reject(error);
+        };
+
         response.on('data', (chunk: Buffer) => {
+          if (responseFinished) return;
           length += chunk.length;
           if (length > MAX_RESPONSE_BYTES) {
-            response.destroy(
-              new FursDomainError('FURS_TLS_RESPONSE_SIZE', 'FURS response exceeds the allowed size')
-            );
+            failResponse(new FursDomainError('FURS_TLS_RESPONSE_SIZE', 'FURS response exceeds the allowed size'));
+            response.destroy();
             return;
           }
           chunks.push(chunk);
         });
+        response.on('error', (error) => failResponse(error));
+        response.on('aborted', () => {
+          failResponse(new FursDomainError('FURS_TLS_RESPONSE_ABORTED', 'FURS response was interrupted'));
+        });
         response.on('end', () => {
+          if (responseFinished) return;
+          responseFinished = true;
           const statusCode = response.statusCode ?? 0;
           const body = Buffer.concat(chunks).toString('utf8');
           if (statusCode < 200 || statusCode >= 300) {
-            agent.destroy();
+            if (ownsAgent) agent.destroy();
             const retryable = statusCode === 408 || statusCode === 425 || statusCode === 429 || statusCode >= 500;
             reject(
               new FursDomainError(
@@ -117,7 +137,7 @@ export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<Strict
               tlsProtocol
             })
           );
-          agent.destroy();
+          if (ownsAgent) agent.destroy();
         });
       }
     );
@@ -126,7 +146,7 @@ export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<Strict
       req.destroy(new FursDomainError('FURS_TLS_TIMEOUT', 'FURS mTLS request timed out'));
     });
     req.on('error', (error) => {
-      agent.destroy();
+      if (ownsAgent) agent.destroy();
       reject(error);
     });
     req.end(input.body, 'utf8');
@@ -138,6 +158,7 @@ export interface FursMtlsTransportOptions {
   readonly signer: SoftwareFiscalSigner;
   readonly serverTrustAnchors: readonly (string | Buffer)[];
   readonly timeoutMilliseconds?: number;
+  readonly maximumSockets?: number;
 }
 
 export interface FursEchoObservation {
@@ -151,11 +172,29 @@ export class FursMtlsTransport {
   readonly #environment: FursEnvironment;
   readonly #secureContext: SecureContext;
   readonly #timeoutMilliseconds: number | undefined;
+  readonly #agent: Agent;
 
   public constructor(options: FursMtlsTransportOptions) {
     this.#environment = options.environment;
     this.#secureContext = options.signer.createMtlsSecureContext(options.serverTrustAnchors);
     this.#timeoutMilliseconds = options.timeoutMilliseconds;
+    const maximumSockets = options.maximumSockets ?? 32;
+    if (!Number.isSafeInteger(maximumSockets) || maximumSockets < 1 || maximumSockets > 250) {
+      throw new FursDomainError('FURS_TLS_CONCURRENCY', 'mTLS maximum sockets must be between 1 and 250');
+    }
+    this.#agent = new Agent({
+      secureContext: this.#secureContext,
+      rejectUnauthorized: true,
+      minVersion: 'TLSv1.2',
+      maxVersion: 'TLSv1.3',
+      keepAlive: true,
+      keepAliveMsecs: 1_000,
+      maxSockets: maximumSockets,
+      maxTotalSockets: maximumSockets,
+      maxFreeSockets: maximumSockets,
+      maxCachedSessions: 0,
+      scheduling: 'lifo'
+    });
   }
 
   public async send(service: FursService, body: string): Promise<StrictMtlsResponse> {
@@ -164,6 +203,7 @@ export class FursMtlsTransport {
       endpoint,
       body,
       secureContext: this.#secureContext,
+      agent: this.#agent,
       ...(this.#timeoutMilliseconds === undefined
         ? {}
         : { timeoutMilliseconds: this.#timeoutMilliseconds })
@@ -199,5 +239,9 @@ export class FursMtlsTransport {
 
   public async echo(value: string): Promise<string> {
     return (await this.echoWithMetadata(value)).value;
+  }
+
+  public close(): void {
+    this.#agent.destroy();
   }
 }

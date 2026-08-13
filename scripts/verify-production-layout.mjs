@@ -147,9 +147,9 @@ async function main() {
 
     const migrationDirectory = join(persistence, 'migrations');
     const migrationFiles = (await readdir(migrationDirectory)).filter((name) => /^\d{3}_.+\.sql$/u.test(name));
-    if (migrationFiles.length !== 11) fail(`expected 11 migrations, found ${migrationFiles.length}`);
+    if (migrationFiles.length !== 14) fail(`expected 14 migrations, found ${migrationFiles.length}`);
     await requirePath(
-      join(migrationDirectory, '011_confirmation_evidence_immutability.sql'),
+      join(migrationDirectory, '014_worker_claim_capacity.sql'),
       'latest digest-locked migration'
     );
 

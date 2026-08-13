@@ -67,6 +67,54 @@ test('FURS-AUD-001: verified confirmation persists hashes and the original ident
   assert.equal(confirmation[2], '4e64a93a-40fa-4c02-afb1-488534b85e4d');
 });
 
+test('FURS-ID-002/OUT-001/REL-001: bounded worker concurrency processes distinct leased identities in parallel', async () => {
+  const jobs = Array.from({ length: 3 }, (_, index) => ({
+    ...job, id: String(index + 10), documentId: `019ff57a-f30d-7290-9bb9-${String(index + 10).padStart(12, '0')}`
+  }));
+  const documents = new Map(jobs.map((entry, index) => [entry.documentId, {
+    ...document, id: entry.documentId, invoiceSequence: String(index + 100),
+    messageId: `019ff57a-f30d-7290-9bb8-${String(index + 10).padStart(12, '0')}`
+  }]));
+  const repo = repository();
+  repo.claimOutboxJobs = async (_workerId, limit) => { assert.equal(limit, 3); return jobs; };
+  repo.getFiscalDocument = async (id) => documents.get(id);
+  let inFlight = 0;
+  let maximumInFlight = 0;
+  let release;
+  const barrier = new Promise((resolve) => { release = resolve; });
+  const client = { submit: async () => {
+    inFlight += 1;
+    maximumInFlight = Math.max(maximumInFlight, inFlight);
+    if (inFlight === 3) release();
+    await barrier;
+    inFlight -= 1;
+    return { kind: 'confirmed', eor: '4e64a93a-40fa-4c02-afb1-488534b85e4d', responsePayloadJson: '{}', certificateFingerprint256: fingerprint };
+  } };
+  const result = await worker(repo, client, { concurrency: 3 }).pollOnce();
+  assert.equal(maximumInFlight, 3);
+  assert.equal(result.claimed, 3);
+  assert.equal(result.confirmed, 3);
+  assert.equal(repo.calls.filter(([name]) => name === 'confirm').length, 3);
+  assert.throws(() => worker(repo, client, { concurrency: 251 }), /between 1 and 250/);
+});
+
+test('FURS-AUD-001/PREM-001: a database confirmation failure retains verified response evidence', async () => {
+  const repo = repository();
+  const premise = { ...document, operationClass: 'BUSINESS_PREMISE', kind: 'PREMISE', electronicDeviceId: undefined, invoiceSequence: undefined, zoi: undefined };
+  repo.getFiscalDocument = async () => premise;
+  repo.confirmBusinessPremise = async () => { throw Object.assign(new Error('database permission denied'), { code: '42501' }); };
+  const client = { submit: async () => ({
+    kind: 'confirmed', eor: undefined, responsePayloadJson: '{"verified":"response"}', certificateFingerprint256: fingerprint
+  }) };
+  const result = await worker(repo, client).pollOnce();
+  assert.equal(result.manualReview, 1);
+  const manual = repo.calls.find(([name]) => name === 'manual');
+  assert.ok(manual);
+  assert.match(manual[1].responseSha256, /^[a-f0-9]{64}$/);
+  assert.equal(manual[1].certificateFingerprint256, fingerprint);
+  assert.equal(manual[1].errorCode, '42501');
+});
+
 test('FURS-AUD-001: durable webhook jobs are signed-delivery boundaries with bounded retry', async () => {
   const repo = repository();
   const webhookJob = { ...job, jobType: 'WEBHOOK' };
@@ -87,14 +135,20 @@ test('FURS-AUD-001: durable webhook jobs are signed-delivery boundaries with bou
 });
 
 test('FURS-OUT-001: temporary connection failure schedules bounded retry', async () => {
-  const repo = repository();
-  const client = { submit: async () => { throw new FursDomainError('FURS_TLS_TIMEOUT', 'timeout'); } };
-  const result = await worker(repo, client).pollOnce();
-  assert.equal(result.retried, 1);
-  const retry = repo.calls.find(([name]) => name === 'retry');
-  assert.ok(retry);
-  assert.equal(retry[1].outcome, 'RETRYABLE_FAILURE');
-  assert.equal(retry[2].toISOString(), '2026-08-12T10:35:02.000Z');
+  for (const code of [
+    'FURS_TLS_TIMEOUT', 'FURS_TLS_RESPONSE_ABORTED', 'ECONNABORTED', 'ECONNREFUSED', 'ECONNRESET',
+    'EHOSTUNREACH', 'ENETUNREACH', 'ENOTFOUND', 'EPIPE', 'ETIMEDOUT', 'EAI_AGAIN'
+  ]) {
+    const repo = repository();
+    const client = { submit: async () => { throw new FursDomainError(code, 'temporary connection failure'); } };
+    const result = await worker(repo, client).pollOnce();
+    assert.equal(result.retried, 1);
+    const retry = repo.calls.find(([name]) => name === 'retry');
+    assert.ok(retry);
+    assert.equal(retry[1].outcome, 'RETRYABLE_FAILURE');
+    assert.equal(retry[1].errorCode, code);
+    assert.equal(retry[2].toISOString(), '2026-08-12T10:35:02.000Z');
+  }
 });
 
 test('FURS-CLOCK-001/OUT-001: an unhealthy clock cannot reach FURS and schedules a bounded retry', async () => {

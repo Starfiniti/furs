@@ -4,20 +4,20 @@ Production remains blocked until every applicable item has dated evidence and a
 named reviewer. A green local test suite is necessary but not sufficient.
 
 - [ ] Official source checker is green and source register is reviewed.
-- [ ] FURS test certificate metadata is recorded without storing secret material.
-- [ ] Strict mTLS echo succeeds; missing/wrong client certificate fails.
+- [x] FURS test certificate metadata is recorded without storing secret material.
+- [x] Strict mTLS echo succeeds; missing/wrong client certificate fails.
 - [ ] Official test invoices cover standard, rejection, timeout, subsequent submit and correction.
-- [ ] Business-premise register, update and close succeed in the test environment.
-- [ ] Signed responses reject tampered header, payload, signature and trust chains.
-- [ ] Independent ZOI and 60-digit receipt-code vectors match.
-- [ ] Real PostgreSQL multi-connection sequence/outbox crash tests pass.
+- [x] Business-premise register, update and close succeed in the test environment.
+- [x] Signed responses reject tampered header, payload, signature and trust chains.
+- [x] Independent ZOI and 60-digit receipt-code vectors match.
+- [x] Real PostgreSQL multi-connection sequence/outbox crash tests pass.
 - [ ] Two-day stable FURS test-environment soak passes.
 - [ ] Peak load plus safety margin passes without duplicate identities.
 - [ ] Certificate and trust-chain rotation rehearsals pass.
 - [ ] Backup, PITR restore and sequence high-water reconciliation pass.
 - [ ] Network-outage and issuing-device/VKR drills pass separately.
-- [ ] Certificate expiry, clock drift, retry age and manual-review alerts fire.
-- [ ] Container/dependency/secret scans have no unresolved high or critical issues.
+- [x] Certificate expiry, clock drift, retry age and manual-review alerts fire locally and traverse Alertmanager; production routing remains deployment evidence.
+- [x] Container/dependency/secret scans have no unresolved high or critical issues.
 - [ ] External security review accepts certificate, auth and crypto boundaries.
 - [ ] Data controller and legal reviewers approve the record-class retention/privacy schedule and backup expiry behavior.
 - [ ] Slovenian accountant/tax specialist signs the supported scenario matrix.
@@ -78,11 +78,66 @@ idempotency key, while the final report contains only aggregate counts and a
 SHA-256 evidence chain. Worker restarts and controlled network interruptions
 must still be orchestrated and recorded by the reviewer during the run.
 
-For a reviewed test-load scenario containing one ordinary standard invoice,
-set `FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired
-`FURS_LOAD_TOTAL` and `FURS_LOAD_CONCURRENCY` (hard limits: 1000 and 20). Run
-`corepack pnpm evidence:load`. It creates fresh message IDs, issue times and
+For the separate controlled network-outage gate, copy
+`templates/furs-network-outage-scenario.example.json` to a protected path
+outside the repository and replace every placeholder. Use an isolated test
+window with an empty outbox and a healthy worker. While outbound connectivity
+from the worker to the FURS test endpoint is blocked, set:
+
+```text
+FURS_OUTAGE_CONFIRMATION=furs-test-network-outage-approved
+FURS_OUTAGE_PHASE=prepare
+FURS_OUTAGE_SCENARIO_PATH=<protected scenario path>
+FURS_OUTAGE_STATE_PATH=<protected state path>
+FURS_API_URL=http://127.0.0.1:8080
+FURS_API_WRITE_TOKEN_FILE=<protected write-token path>
+```
+
+Run `corepack pnpm evidence:outage`. The prepare phase fails unless the worker
+remains healthy, the invoice remains `ISSUED_WITHOUT_EOR`, a failed connection
+attempt is observed and the same command remains in the durable outbox. Always
+restore connectivity in an operating-system-level `finally`/cleanup boundary.
+Then set `FURS_OUTAGE_PHASE=recover` and
+`FURS_OUTAGE_EVIDENCE_PATH=<protected evidence path>` and run the same command.
+Recovery fails unless the official test service confirms the same document,
+invoice sequence, issue time, message ID, payload digest and ZOI digest with the
+explicit subsequent-submission flag. This is network-outage evidence only; it
+must never be used as evidence for the legally separate issuing-device/VKR
+procedure.
+
+For the technically separate issuing-device failure boundary, copy
+`templates/furs-device-failure-scenario.example.json` to a protected path and
+use a dedicated test-device identifier. Set
+`FURS_DEVICE_FAILURE_CONFIRMATION=furs-test-device-failure-approved`,
+`FURS_DEVICE_FAILURE_SCENARIO_PATH`, `FURS_DEVICE_FAILURE_EVIDENCE_PATH`,
+`FURS_API_URL` and `FURS_API_WRITE_TOKEN_FILE`, then run
+`corepack pnpm evidence:device`. The runner leaves that dedicated device
+non-operational and fails unless ordinary electronic issuance is rejected with
+`FURS_DEVICE_FALLBACK_REQUIRED` before any fiscal document or outbox job is
+created. Its output deliberately records `humanVkrProcedureExecuted: false` and
+`productionVkrApproval: false`; a reviewed operator/VKR exercise and later
+SalesBookInvoice reconciliation remain a separate human/legal release gate.
+
+Copy `templates/furs-load-scenario.example.json` to a protected path, replace
+every placeholder and record the reviewed `expectedPeakPerSecond`. Set
+`FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired
+`FURS_LOAD_TOTAL` and `FURS_LOAD_CONCURRENCY` (hard limits: 1000 and 250). Run
+`corepack pnpm evidence:load`. A confirmed worker-submission canary must pass
+before the timed interval begins. The runner then creates fresh message IDs, issue times and
 idempotency keys; requires the configured expected terminal result; proves
-document/fiscal-identity uniqueness; and reports redacted p50/p95 latency.
-Agree the load and schedule with the responsible reviewer before contacting the
-shared FURS test service.
+document/fiscal-identity uniqueness; and reports elapsed throughput plus redacted
+p50/p95 latency. The command exits non-zero when achieved throughput is below
+three times the reviewed peak. Agree the load and schedule with the responsible
+reviewer before contacting the shared FURS test service.
+
+For local end-to-end alert-routing evidence, use the official Alertmanager binary
+whose release archive checksum was independently verified. Set
+`FURS_ALERTMANAGER_EXECUTABLE_PATH`, an external protected
+`FURS_ALERT_EVIDENCE_DIR`, the independently recorded
+`FURS_ALERTMANAGER_EXECUTABLE_SHA256`, and
+`FURS_ALERT_DELIVERY_CONFIRMATION=furs-alert-routing-approved`, then run
+`corepack pnpm evidence:alerts`. The runner starts an isolated loopback-only
+Alertmanager and webhook receiver, submits every required release alert category,
+and fails unless all categories traverse the real routing path. Its output
+deliberately records `productionRoutingVerified: false`; production receiver,
+escalation and access-control evidence remains a deployment gate.

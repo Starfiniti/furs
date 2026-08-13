@@ -16,6 +16,9 @@ export interface RuntimeConfig {
   readonly runMigrations: boolean;
   readonly apiHost: string;
   readonly apiPort: number;
+  readonly apiMaximumRequestsPerMinute: number;
+  readonly workerConcurrency: number;
+  readonly transportMaximumSockets: number;
   readonly maximumClockDriftMs: number;
   readonly ntpServers: readonly string[];
   readonly ntpMinimumResponses: number;
@@ -78,7 +81,9 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     try { url = new URL(env.FURS_WEBHOOK_URL); } catch { throw new Error('FURS_WEBHOOK_URL is invalid'); }
     const loopbackTestUrl = environment === 'test' && url.protocol === 'http:' && ['127.0.0.1', 'localhost', '::1'].includes(url.hostname);
     if (url.protocol !== 'https:' && !loopbackTestUrl) throw new Error('FURS_WEBHOOK_URL must use HTTPS (or loopback HTTP in test)');
-    if (url.username || url.password || url.hash) throw new Error('FURS_WEBHOOK_URL must not contain credentials or a fragment');
+    if (url.username || url.password || url.search || url.hash) {
+      throw new Error('FURS_WEBHOOK_URL must not contain credentials, a query or a fragment');
+    }
   }
   const configuredNtpServers = ntpServers(env);
   const configuredNtpMinimumResponses = integer(env, 'FURS_NTP_MINIMUM_RESPONSES', 2, 2, configuredNtpServers.length);
@@ -100,6 +105,9 @@ export function loadRuntimeConfig(env: NodeJS.ProcessEnv = process.env): Runtime
     runMigrations: env.FURS_RUN_MIGRATIONS === 'true',
     apiHost,
     apiPort: integer(env, 'FURS_API_PORT', 8080, 1, 65535),
+    apiMaximumRequestsPerMinute: integer(env, 'FURS_API_MAXIMUM_REQUESTS_PER_MINUTE', 600, 10, 100_000),
+    workerConcurrency: integer(env, 'FURS_WORKER_CONCURRENCY', 1, 1, 250),
+    transportMaximumSockets: integer(env, 'FURS_TRANSPORT_MAXIMUM_SOCKETS', 32, 1, 250),
     maximumClockDriftMs: integer(env, 'FURS_MAX_CLOCK_DRIFT_MS', 5000, 100, 60000),
     ntpServers: configuredNtpServers,
     ntpMinimumResponses: configuredNtpMinimumResponses,

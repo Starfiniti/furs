@@ -27,6 +27,7 @@ x-furs-service: &furs-service
     FURS_NTP_TIMEOUT_MS: ${FURS_NTP_TIMEOUT_MS:-2000}
     FURS_MAX_CLOCK_DRIFT_MS: ${FURS_MAX_CLOCK_DRIFT_MS:-5000}
     FURS_CERTIFICATE_MINIMUM_DAYS: ${FURS_CERTIFICATE_MINIMUM_DAYS:-14}
+    FURS_TRANSPORT_MAXIMUM_SOCKETS: ${FURS_TRANSPORT_MAXIMUM_SOCKETS:-32}
     FURS_RUN_MIGRATIONS: "false"
   volumes:
     - ${FURS_CERTIFICATE_FILE:?set certificate file}:/run/secrets/furs-certificate.p12:ro
@@ -108,6 +109,7 @@ services:
       <<: *furs-environment
       FURS_API_HOST: 0.0.0.0
       FURS_API_PORT: 8080
+      FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: ${FURS_API_MAXIMUM_REQUESTS_PER_MINUTE:-600}
       FURS_API_READ_TOKEN_FILE: /run/secrets/furs-api-read-token
       FURS_API_WRITE_TOKEN_FILE: /run/secrets/furs-api-write-token
     volumes:
@@ -133,6 +135,7 @@ services:
       <<: *furs-environment
       DATABASE_URL: postgresql://furs_worker_login@postgres:5432/furs
       DATABASE_PASSWORD_FILE: /run/secrets/furs-worker-database-password
+      FURS_WORKER_CONCURRENCY: ${FURS_WORKER_CONCURRENCY:-1}
       FURS_WEBHOOK_DESTINATION_ID: ${FURS_WEBHOOK_DESTINATION_ID:?set webhook destination ID}
       FURS_WEBHOOK_URL: ${FURS_WEBHOOK_URL:?set HTTPS webhook URL}
       FURS_WEBHOOK_SECRET_FILE: /run/secrets/furs-webhook-secret

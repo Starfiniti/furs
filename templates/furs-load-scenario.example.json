@@ -1,0 +1,39 @@
+{
+  "environment": "test",
+  "reviewedBy": "replace-with-actual-reviewer",
+  "policyVersion": "replace-with-approved-policy-version",
+  "expectedTerminalStatus": "CONFIRMED",
+  "expectedPeakPerSecond": 0,
+  "sourceVersion": {
+    "technicalDocumentation": "3.2",
+    "technicalDocumentationSha256": "7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547",
+    "schemaSha256": "6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd"
+  },
+  "request": {
+    "legalEntityId": "00000000-0000-0000-0000-000000000000",
+    "taxNumber": "00000000",
+    "kind": "STANDARD",
+    "businessPremiseId": "REPLACE",
+    "electronicDeviceId": "REPLACE",
+    "issueLocalTime": "2026-01-01T00:00:00",
+    "messageId": "00000000-0000-4000-8000-000000000000",
+    "numberingStructure": "B",
+    "invoiceAmount": "1.22",
+    "paymentAmount": "1.22",
+    "taxesPerSeller": [
+      {
+        "vat": [
+          {
+            "rate": "22.00",
+            "taxableAmount": "1.00",
+            "taxAmount": "0.22"
+          }
+        ]
+      }
+    ],
+    "operator": {
+      "kind": "self-service",
+      "taxNumber": "00000000"
+    }
+  }
+}

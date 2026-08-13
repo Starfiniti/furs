@@ -2938,7 +2938,8 @@
         "additionalProperties": false,
         "required": [
           "environment",
-          "legalEntityId"
+          "legalEntityId",
+          "apiMaximumRequestsPerMinute"
         ],
         "properties": {
           "environment": {
@@ -2951,6 +2952,11 @@
           "legalEntityId": {
             "type": "string",
             "pattern": "^[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$"
+          },
+          "apiMaximumRequestsPerMinute": {
+            "type": "integer",
+            "minimum": 10,
+            "maximum": 100000
           }
         }
       },

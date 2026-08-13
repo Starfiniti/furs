@@ -72,9 +72,15 @@ export async function runFursSoak(options) {
     if (remaining > 0 && cycles < (options.maximumCycles ?? Number.MAX_SAFE_INTEGER)) await sleep(Math.min(intervalMs, remaining));
   }
   if (cycles === 0) throw new SoakEvidenceError('FURS_SOAK_EMPTY', 'Soak produced no evidence cycles');
+  const finishedAt = now();
+  const elapsedMilliseconds = Math.max(0, finishedAt.getTime() - startedAt.getTime());
   return Object.freeze({
-    evidenceVersion: 1, environment: 'test', startedAt: startedAt.toISOString(), finishedAt: now().toISOString(),
-    requestedDurationMs: durationMs, intervalMs, cycles, operations, allCyclesPassed: true, evidenceChainSha256: chain
+    evidenceVersion: 1, environment: 'test', startedAt: startedAt.toISOString(), finishedAt: finishedAt.toISOString(),
+    requestedDurationMs: durationMs, elapsedMilliseconds,
+    durationHours: Math.round((elapsedMilliseconds / 3_600_000) * 1_000_000) / 1_000_000,
+    intervalMs, cycles, operations, failures: 0, allCyclesPassed: true,
+    completedRequestedDuration: elapsedMilliseconds >= durationMs,
+    evidenceChainSha256: chain
   });
 }
 

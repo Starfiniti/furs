@@ -141,7 +141,7 @@ test('FURS-AUD-001: applied database migrations are digest-tracked and replay-sa
   t.after(() => db.close());
   await runMigrations(database);
   const migrations = await db.query('select name, sha256 from furs.schema_migrations order by name');
-  assert.equal(migrations.rows.length, 11);
+  assert.equal(migrations.rows.length, 14);
   assert.ok(migrations.rows.every((row) => /^[a-f0-9]{64}$/.test(row.sha256)));
 });
 
@@ -324,6 +324,29 @@ test('FURS-OUT-001: outbox claim, retry and confirmation preserve the original d
   assert.equal((await db.query('select count(*)::int as count from furs.audit_events')).rows[0].count, 3);
 });
 
+test('FURS-ID-002/OUT-001/REL-001: bounded claim capacity exceeds the former 100-job ceiling', async (t) => {
+  const { db, repository } = await setup();
+  t.after(() => db.close());
+
+  for (let index = 0; index < 101; index += 1) {
+    const suffix = String(index + 200).padStart(12, '0');
+    const sequence = await repository.allocateInvoiceSequence(entityId, 'TRGOVINA1', 'BLAG1');
+    await repository.prepareFiscalCommand(command(sequence, {
+      operationId: `019ff57a-f30d-7290-9bb9-${suffix}`,
+      idempotencyKey: IdempotencyKey.parse(`claim-capacity:${index}`),
+      messageId: MessageId.parse(`4e64a93a-40fa-4c02-afb1-${suffix}`),
+      payload: payload(`claim-${index}`)
+    }));
+  }
+
+  const jobs = await repository.claimOutboxJobs('worker-capacity', 250);
+  assert.equal(jobs.length, 101);
+  await assert.rejects(
+    repository.claimOutboxJobs('worker-capacity', 251),
+    (error) => error.code === 'FURS_OUTBOX_CLAIM'
+  );
+});
+
 test('FURS-IDEMP-001/OUT-001: reconciliation cannot create a second active fiscal delivery', async (t) => {
   const { db, repository } = await setup();
   t.after(() => db.close());
@@ -346,6 +369,24 @@ test('FURS-IDEMP-001/OUT-001: reconciliation cannot create a second active fisca
        and status in ('PENDING','PROCESSING','RETRY') group by job_type, status`, [prepared.id]
   );
   assert.deepEqual(active.rows, [{ job_type: 'SUBMIT', status: 'RETRY', count: 1 }]);
+});
+
+test('FURS-AUD-001/OUT-001: operator retry continues the immutable attempt sequence', async (t) => {
+  const { db, repository } = await setup();
+  t.after(() => db.close());
+  const sequence = await repository.allocateInvoiceSequence(entityId, 'TRGOVINA1', 'BLAG1');
+  const prepared = await repository.prepareFiscalCommand(command(sequence));
+  const [firstJob] = await repository.claimOutboxJobs('worker-first');
+  await repository.startSending(prepared.id, 'worker-first');
+  await repository.markManualReview({
+    jobId: firstJob.id, workerId: 'worker-first', documentId: prepared.id, attemptNumber: 1,
+    outcome: 'UNKNOWN_OUTCOME', requestSha256: prepared.payloadSha256, errorCode: 'TEST_FAILURE',
+    startedAt: new Date('2026-08-12T10:00:00Z'), finishedAt: new Date('2026-08-12T10:00:01Z')
+  });
+
+  await repository.requestRetry(prepared.id, '4e64a93a-40fa-4c02-afb1-488534b85e53', entityId);
+  const [retryJob] = await repository.claimOutboxJobs('worker-retry');
+  assert.equal(retryJob.attemptCount, 2);
 });
 
 test('FURS-COR-001/AUD-001: fiscal evidence is append-only and confirmed data is immutable', async (t) => {

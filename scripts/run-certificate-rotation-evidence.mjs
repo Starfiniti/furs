@@ -30,14 +30,18 @@ async function probeCertificate(configuration) {
   try { signer = SoftwareFiscalSigner.fromPkcs12(p12, passphrase); }
   finally { p12.fill(0); }
   const transport = new FursMtlsTransport({ environment: 'test', signer, serverTrustAnchors: [trustAnchor] });
-  const value = `rotation-${randomUUID()}`;
-  const echo = await transport.echoWithMetadata(value);
-  if (echo.value !== value) throw new RotationEvidenceError('FURS_ROTATION_ECHO', 'Certificate echo did not match');
-  const metadata = signer.getCertificateMetadata();
-  return Object.freeze({
-    fingerprint256: metadata.fingerprint256, validFrom: metadata.validFrom, validTo: metadata.validTo,
-    echo: 'verified', serverDateObserved: echo.serverDate !== undefined
-  });
+  try {
+    const value = `rotation-${randomUUID()}`;
+    const echo = await transport.echoWithMetadata(value);
+    if (echo.value !== value) throw new RotationEvidenceError('FURS_ROTATION_ECHO', 'Certificate echo did not match');
+    const metadata = signer.getCertificateMetadata();
+    return Object.freeze({
+      fingerprint256: metadata.fingerprint256, validFrom: metadata.validFrom, validTo: metadata.validTo,
+      echo: 'verified', serverDateObserved: echo.serverDate !== undefined
+    });
+  } finally {
+    transport.close();
+  }
 }
 
 export async function runCertificateRotationEvidence(options) {

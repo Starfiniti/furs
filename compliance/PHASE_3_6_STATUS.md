@@ -1,6 +1,6 @@
 # Phases 3–6 implementation status
 
-Last updated: 12 August 2026
+Last updated: 13 August 2026
 Gate status: local controls implemented; external/integration gates incomplete
 
 ## Phase 3 — fiscal workflow
@@ -13,7 +13,11 @@ correction, rejection, timeout/retry, manual review and invalid signed responses
 Explicit subsequent submissions remain `ISSUED_WITHOUT_EOR` across retries and
 stale-worker recovery.
 
-Not yet proven: official test-environment timeout/subsequent-submit/correction paths.
+Official test evidence now proves standard confirmation, deterministic signed
+rejection, a linked correction and subsequent submission with unchanged identity,
+issue time, payload and ZOI. Separate confirmed invoices prove explicit foreign
+and self-service operator variants. A controlled connectivity interruption with
+measured recovery timing remains separate and incomplete.
 
 ## Phase 4 — PostgreSQL service
 
@@ -25,10 +29,12 @@ Terminal results atomically enqueue redacted, hash-checked, HMAC-signed webhooks
 the worker has an alertable database heartbeat. PGlite migrations and repository
 tests pass.
 
-A temporary native PostgreSQL 17.10 run proved multi-connection sequence and
-idempotency concurrency, competing `SKIP LOCKED` claims, stale-lease recovery and
-a separate logical restore. Not yet proven: legal-window drill, production
-backup/PITR, load target and FURS-backed reconciliation.
+A current native PostgreSQL 17.10 run with all 13 migrations proved 128 unique
+concurrent allocations, 64-to-1 idempotent reservation, competing `SKIP LOCKED`
+claims, stale-lease recovery and a separate logical restore. A live worker-stop
+drill queued one test invoice and later confirmed the same document and sequence
+after restart. Not yet proven: legal-window drill, production backup/PITR, load
+target and FURS-backed reconciliation under failure.
 
 ## Phase 5 — codes and contract
 
@@ -55,19 +61,21 @@ platform admin UX and accountant-approved refund/payment scenario mappings.
 
 - The 12 August source check detected a changed SPOT online-retail guidance
   digest; payment/adaptor policy release is frozen pending the recorded review.
-- FURS test certificate and official environment evidence;
+- independent cryptographic/security review and a second certificate for rotation;
 - Slovenian accountant/tax-specialist scenario signoff;
 - reviewed PostgreSQL evidence plus production PITR and operational hardening;
-- security, rotation, restore, soak and load reviews in the release checklist.
+- production PITR, alert-routing, rotation, completed soak and approved load evidence.
 
 ## Current local evidence
 
-- `corepack pnpm check`: 147 passed, 0 failed, 0 skipped, 0 todo; the
+- `corepack pnpm check`: 157 passed, 0 failed, 0 skipped, 0 todo; the
   production-only bundle layout also passes.
-- Secret scan: 239 repository files checked.
+- Secret scan passed; protected runtime credentials and detailed evidence remain
+  outside the repository.
 - Native PostgreSQL 17.10 concurrency/crash and separate logical-restore
   integrity rehearsals passed; production PITR remains external.
 - `corepack pnpm audit --prod --audit-level=high`: no known vulnerabilities.
 - OpenAPI generation/check and PHP syntax validation pass.
-- Compose, Prometheus and GitHub Actions files parse as YAML; Docker runtime
-  validation could not run because Docker is not installed on this workstation.
+- Current GitHub PR checks build the production image and report green test and
+  container-security jobs; the official-source job remains intentionally red for
+  the changed SPOT online-retail digest pending accountant review.

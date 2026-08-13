@@ -48,7 +48,12 @@ export async function createNodeRuntime(config: RuntimeConfig) {
 
   const invoiceSchema = PinnedOfficialSchemaValidator.fromUtf8Bytes(invoiceSchemaBytes, config.invoiceSchemaSha256);
   const responseSchema = PinnedOfficialSchemaValidator.fromUtf8Bytes(responseSchemaBytes, config.responseSchemaSha256);
-  const transport = new FursMtlsTransport({ environment: config.environment, signer, serverTrustAnchors });
+  const transport = new FursMtlsTransport({
+    environment: config.environment,
+    signer,
+    serverTrustAnchors,
+    maximumSockets: config.transportMaximumSockets
+  });
   const pool = createPostgresPool({ connectionString: config.databaseUrl, password: databasePassword });
   const database = new PgPoolDatabase(pool);
   if (config.runMigrations) await runMigrations(database);
@@ -100,7 +105,10 @@ export async function createNodeRuntime(config: RuntimeConfig) {
     health,
     echo,
     refreshExternalHealth: refreshClockHealth,
-    close: () => pool.end()
+    close: async () => {
+      transport.close();
+      await pool.end();
+    }
   });
 }
 

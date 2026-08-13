@@ -1,6 +1,6 @@
 # Phase 1 official-source notes
 
-Review date: 12 August 2026
+Review date: 13 August 2026
 Official document: FURS Technical Documentation v3.2, 23 March 2026
 Observed SHA-256: `7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547`
 Gate: P1
@@ -17,3 +17,20 @@ Gate: P1
 - The schema labels invoice local time, premise validity date, and timestamped FURS responses with the same `date-time` format. The field tables/examples prescribe `YYYY-MM-DDTHH:mm:ss` for invoice values, `YYYY-MM-DD` for premise validity, and also show UTC/fractional response timestamps. The validator implements these documented FURS forms, while field-specific domain types enforce the narrower outbound representation.
 
 These notes are implementation evidence, not baseline acceptance. Human source review and official FURS test-environment evidence remain mandatory gate items.
+
+## Redacted FURS test-environment evidence — 13 August 2026
+
+- Strict mTLS Echo succeeded with the issued anonymous test certificate; missing and unrelated client certificates were rejected.
+- A signed deterministic rejection was verified through the pinned response certificate chain and official response schema.
+- A movable test business premise was confirmed. A PostgreSQL least-privilege failure on the first local persistence attempt did not mutate or replace the original document; the same immutable payload was confirmed on attempt 2 after the reviewed grant migration.
+- A subsequent update of that test business premise was confirmed on attempt 1.
+- A separate lifecycle-only test premise was confirmed on registration and then confirmed closed, leaving the primary test premise available for later soak/outage evidence.
+- A dedicated test electronic device was activated under that confirmed premise.
+- A minimal standard test invoice was confirmed on attempt 1. The service persisted request/response hashes and hashes of ZOI/EOR; raw fiscal payloads, tokens, tax identity, ZOI and EOR are not included in the release-facing evidence.
+- A linked negative correction was confirmed with a new non-reused sequence, its own ZOI/EOR and the immutable original invoice reference.
+- A test invoice prepared as `ISSUED_WITHOUT_EOR` was subsequently confirmed with the protocol `SubsequentSubmit` marker; its pre-existing sequence, issue time, payload and ZOI remained unchanged across delivery.
+- The protected evidence artifact SHA-256 is `185a144e272d0d37093801f0afa6fe75ee39001da3b3f2aae0d06dbb77700d13`.
+
+This proves the tested protocol path only. It does not complete the controlled
+network-outage/recovery drill, soak, load, rotation or human legal
+review gates, and it is not a FURS certification or endorsement.
