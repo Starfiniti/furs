@@ -18,6 +18,12 @@ Create protected files outside the repository for:
 Select at least two independently operated NTP servers that are reachable over
 UDP/123 from both API and worker containers. Record the reviewed list in
 `FURS_NTP_SERVERS_JSON`; the runtime requires a quorum of two by default.
+`FURS_API_MAXIMUM_REQUESTS_PER_MINUTE` defaults to `600` and is enforced per
+bearer credential. Set it explicitly from the reviewed peak, polling behavior
+and reverse-proxy controls; accepted values are `10` through `100000`. A load
+test may use a higher protected test-only value, but production still requires
+edge rate limits, authentication and capacity evidence for the selected value.
+
 Plain SNTP is not cryptographically authenticated, so production should prefer
 controlled infrastructure sources and restrict UDP/123 to the reviewed list.
 Record whether the deployment threat model requires authenticated NTS.

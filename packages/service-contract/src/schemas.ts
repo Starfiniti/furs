@@ -221,10 +221,11 @@ export const echoResponseSchema = Object.freeze({
 
 export const systemInfoResponseSchema = Object.freeze({
   $id: 'SystemInfoResponse', type: 'object', additionalProperties: false,
-  required: ['environment', 'legalEntityId'],
+  required: ['environment', 'legalEntityId', 'apiMaximumRequestsPerMinute'],
   properties: {
     environment: { type: 'string', enum: ['test', 'production'] },
-    legalEntityId: { type: 'string', pattern: UUID_PATTERN }
+    legalEntityId: { type: 'string', pattern: UUID_PATTERN },
+    apiMaximumRequestsPerMinute: { type: 'integer', minimum: 10, maximum: 100000 }
   }
 } as const);
 

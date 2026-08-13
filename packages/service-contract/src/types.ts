@@ -132,4 +132,5 @@ export interface ElectronicDeviceRequest {
 export interface SystemInfoResponse {
   readonly environment: 'test' | 'production';
   readonly legalEntityId: string;
+  readonly apiMaximumRequestsPerMinute: number;
 }

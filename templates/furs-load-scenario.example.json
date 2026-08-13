@@ -6,6 +6,7 @@
   "expectedPeakPerSecond": 0,
   "sourceVersion": {
     "technicalDocumentation": "3.2",
+    "technicalDocumentationSha256": "7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547",
     "schemaSha256": "6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd"
   },
   "request": {

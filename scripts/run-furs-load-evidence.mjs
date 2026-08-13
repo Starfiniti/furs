@@ -6,6 +6,9 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const OFFICIAL_TECHNICAL_DOCUMENTATION_SHA256 = '7f645a0f96e8e8a28cceca462807000031c79c87a5402d98500e35f9cf001547';
+const OFFICIAL_SCHEMA_SHA256 = '6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd';
+
 class LoadEvidenceError extends Error {
   constructor(code, message) { super(message); this.code = code; }
 }
@@ -25,8 +28,12 @@ function validate(options) {
   if (scenario.environment !== 'test' || scenario.request?.kind !== 'STANDARD' || scenario.request?.subsequentSubmit === true) {
     throw new LoadEvidenceError('FURS_LOAD_SCENARIO', 'Load scenario must be an ordinary standard invoice in test');
   }
-  if (scenario.sourceVersion?.technicalDocumentation !== '3.2' || !/^[a-f0-9]{64}$/.test(scenario.sourceVersion?.schemaSha256 ?? '')) {
-    throw new LoadEvidenceError('FURS_LOAD_SOURCE', 'Load scenario source version is invalid');
+  if (
+    scenario.sourceVersion?.technicalDocumentation !== '3.2' ||
+    scenario.sourceVersion?.technicalDocumentationSha256 !== OFFICIAL_TECHNICAL_DOCUMENTATION_SHA256 ||
+    scenario.sourceVersion?.schemaSha256 !== OFFICIAL_SCHEMA_SHA256
+  ) {
+    throw new LoadEvidenceError('FURS_LOAD_SOURCE', 'Load scenario is not pinned to the reviewed official source versions');
   }
   if (typeof scenario.reviewedBy !== 'string' || !scenario.reviewedBy.trim() || typeof scenario.policyVersion !== 'string' || !scenario.policyVersion.trim()) {
     throw new LoadEvidenceError('FURS_LOAD_REVIEW', 'Load scenario requires reviewer and policy version');
@@ -83,6 +90,11 @@ export async function runFursLoadEvidence(options) {
   const nowMilliseconds = options.nowMilliseconds ?? (() => performance.now());
   const info = await api(fetchImpl, root, options.token, 'v1/system/info');
   if (info.environment !== 'test' || info.legalEntityId !== scenario.request.legalEntityId) throw new LoadEvidenceError('FURS_LOAD_ENVIRONMENT', 'Connected API does not match the test load scenario');
+  const requiredPerSecond = scenario.expectedPeakPerSecond * 3;
+  const minimumApiRequestsPerMinute = Math.ceil(requiredPerSecond * 60 * 2);
+  if (!Number.isSafeInteger(info.apiMaximumRequestsPerMinute) || info.apiMaximumRequestsPerMinute < minimumApiRequestsPerMinute) {
+    throw new LoadEvidenceError('FURS_LOAD_RATE_LIMIT', 'API request limit is below the minimum required for the reviewed load target');
+  }
   const echoValue = `load-${createHash('sha256').update(scenario.policyVersion).digest('hex').slice(0, 24)}`;
   const echo = await api(fetchImpl, root, options.token, 'v1/furs/echo', { method: 'POST', body: { value: echoValue } });
   if (echo.value !== echoValue) throw new LoadEvidenceError('FURS_LOAD_ECHO', 'Load preflight echo failed');
@@ -117,16 +129,17 @@ export async function runFursLoadEvidence(options) {
   if (new Set(samples.map((sample) => sample.identity)).size !== total) throw new LoadEvidenceError('FURS_LOAD_DUPLICATE_IDENTITY', 'Load returned duplicate fiscal identities');
   const durations = samples.map((sample) => sample.durationMs);
   const achievedPerSecond = total / (elapsedMilliseconds / 1000);
-  const requiredPerSecond = scenario.expectedPeakPerSecond * 3;
   const summary = {
     evidenceVersion: 1, generatedAt: new Date().toISOString(), environment: 'test',
     scenarioSha256: createHash('sha256').update(options.scenarioText).digest('hex'),
     policyVersionSha256: createHash('sha256').update(scenario.policyVersion).digest('hex'),
-    sourceVersion: { technicalDocumentation: '3.2', schemaSha256: scenario.sourceVersion.schemaSha256 },
+    sourceVersion: scenario.sourceVersion,
     total, concurrency, terminalStatus: scenario.expectedTerminalStatus,
     uniqueDocuments: total, uniqueFiscalIdentities: total, duplicateIdentities: 0,
     expectedPeakPerSecond: scenario.expectedPeakPerSecond,
     requiredPerSecond,
+    apiMaximumRequestsPerMinute: info.apiMaximumRequestsPerMinute,
+    minimumApiRequestsPerMinute,
     achievedPerSecond: Math.round(achievedPerSecond * 1000) / 1000,
     targetMultiplier: 3,
     targetAchieved: achievedPerSecond >= requiredPerSecond,

@@ -179,7 +179,8 @@ export function buildApi(dependencies: ApiDependencies): FastifyInstance {
   app.get('/openapi.json', async () => openApiDocument);
   app.get('/v1/system/info', { schema: { response: { 200: systemInfoResponseSchema } } }, async () => ({
     environment: dependencies.environment,
-    legalEntityId: dependencies.legalEntityId
+    legalEntityId: dependencies.legalEntityId,
+    apiMaximumRequestsPerMinute: maximumRequestsPerMinute
   }));
   app.get('/metrics', async (_request, reply) => {
     const summary = await dependencies.repository.getOperationalSummary(dependencies.legalEntityId);

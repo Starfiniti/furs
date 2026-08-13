@@ -15,12 +15,15 @@ const base = {
 test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schema paths', () => {
   const config = loadRuntimeConfig(base);
   assert.equal(config.environment, 'test'); assert.equal(config.runMigrations, false); assert.equal(config.apiHost, '127.0.0.1');
+  assert.equal(config.apiMaximumRequestsPerMinute, 600);
   assert.equal(config.readBearerTokenFile, '/run/secrets/read-token');
   assert.equal(config.writeBearerTokenFile, '/run/secrets/write-token');
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_ENVIRONMENT: 'custom' }), /test or production/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_SERVER_CA_PATHS_JSON: '[]' }), /at least one/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_NTP_SERVERS_JSON: '["time.example"]' }), /two distinct/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_NTP_SERVERS_JSON: '["time.example","time.example"]' }), /two distinct/);
+  assert.equal(loadRuntimeConfig({ ...base, FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: '100000' }).apiMaximumRequestsPerMinute, 100_000);
+  assert.throws(() => loadRuntimeConfig({ ...base, FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: '100001' }), /invalid/);
   assert.throws(() => loadRuntimeConfig({ ...base, FURS_WEBHOOK_URL: 'https://example.test/hook' }), /configured together/);
   assert.throws(() => loadRuntimeConfig({
     ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'http://example.test/hook',

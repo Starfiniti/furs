@@ -15,6 +15,7 @@ async function main(): Promise<void> {
     ...(runtime.readBearerToken === undefined ? {} : { readBearerToken: runtime.readBearerToken }),
     legalEntityId: runtime.config.legalEntityId,
     environment: runtime.config.environment,
+    maximumRequestsPerMinute: runtime.config.apiMaximumRequestsPerMinute,
     echo: runtime.echo,
     operationalStatus: () => runtime.health.snapshot(),
     readinessChecks: {

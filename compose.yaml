@@ -108,6 +108,7 @@ services:
       <<: *furs-environment
       FURS_API_HOST: 0.0.0.0
       FURS_API_PORT: 8080
+      FURS_API_MAXIMUM_REQUESTS_PER_MINUTE: ${FURS_API_MAXIMUM_REQUESTS_PER_MINUTE:-600}
       FURS_API_READ_TOKEN_FILE: /run/secrets/furs-api-read-token
       FURS_API_WRITE_TOKEN_FILE: /run/secrets/furs-api-write-token
     volumes:
