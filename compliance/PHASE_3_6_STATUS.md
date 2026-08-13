@@ -15,8 +15,9 @@ stale-worker recovery.
 
 Official test evidence now proves standard confirmation, deterministic signed
 rejection, a linked correction and subsequent submission with unchanged identity,
-issue time, payload and ZOI. A controlled connectivity interruption with measured
-recovery timing remains separate and incomplete.
+issue time, payload and ZOI. Separate confirmed invoices prove explicit foreign
+and self-service operator variants. A controlled connectivity interruption with
+measured recovery timing remains separate and incomplete.
 
 ## Phase 4 — PostgreSQL service
 

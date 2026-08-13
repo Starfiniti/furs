@@ -51,7 +51,8 @@ files, never command-line arguments or environment values.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
   logical-restore integrity rehearsals passed with redacted evidence.
 - Strict official-test mTLS, signed response, premise lifecycle, standard invoice,
-  correction and subsequent-submission evidence passed.
+  correction, subsequent-submission, foreign-operator and self-service-operator
+  evidence passed.
 - Official Prometheus `promtool` 3.13.1 parsed all six alert rules and synthetic
   unit tests proved firing for certificate, clock, retry backlog, manual review
   and worker-heartbeat categories; end-to-end delivery remains open.
