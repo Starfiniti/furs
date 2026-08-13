@@ -330,3 +330,19 @@ Local loopback evidence must record `productionRoutingVerified: false`. It canno
 approve a production receiver, on-call escalation, authentication, network
 policy or delivery service. Those remain named deployment evidence rather than a
 property inferred from a successful local webhook.
+
+## ADR-030 — Inbound cryptographic transports have explicit semantic and size bounds
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+Strict TLS and a valid signature do not make every peer-controlled byte sequence
+safe to process. FURS request and response bodies are bounded to 1 MiB, and
+response stream errors/aborts settle through explicit fail-closed outcomes.
+Interrupted responses are connection failures eligible only for the existing
+bounded immutable retry path; an oversized response is not retried as success.
+
+JWS verification supports the documented Base64URL RS256 form only. Unsupported
+critical-header semantics and `b64:false` are rejected even when a token is
+otherwise correctly signed. Configured mTLS and webhook URLs also reject query
+strings so credentials cannot migrate from protected files into URLs.

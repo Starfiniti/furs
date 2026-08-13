@@ -104,14 +104,17 @@ test('FURS-AUD-001: durable webhook jobs are signed-delivery boundaries with bou
 });
 
 test('FURS-OUT-001: temporary connection failure schedules bounded retry', async () => {
-  const repo = repository();
-  const client = { submit: async () => { throw new FursDomainError('FURS_TLS_TIMEOUT', 'timeout'); } };
-  const result = await worker(repo, client).pollOnce();
-  assert.equal(result.retried, 1);
-  const retry = repo.calls.find(([name]) => name === 'retry');
-  assert.ok(retry);
-  assert.equal(retry[1].outcome, 'RETRYABLE_FAILURE');
-  assert.equal(retry[2].toISOString(), '2026-08-12T10:35:02.000Z');
+  for (const code of ['FURS_TLS_TIMEOUT', 'FURS_TLS_RESPONSE_ABORTED']) {
+    const repo = repository();
+    const client = { submit: async () => { throw new FursDomainError(code, 'temporary connection failure'); } };
+    const result = await worker(repo, client).pollOnce();
+    assert.equal(result.retried, 1);
+    const retry = repo.calls.find(([name]) => name === 'retry');
+    assert.ok(retry);
+    assert.equal(retry[1].outcome, 'RETRYABLE_FAILURE');
+    assert.equal(retry[1].errorCode, code);
+    assert.equal(retry[2].toISOString(), '2026-08-12T10:35:02.000Z');
+  }
 });
 
 test('FURS-CLOCK-001/OUT-001: an unhealthy clock cannot reach FURS and schedules a bounded retry', async () => {

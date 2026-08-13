@@ -73,6 +73,8 @@ test('FURS-JWS-002: payload and signature mutation fail closed', () => {
 
 test('FURS-JWS-002: algorithm, x5c order, trust, validity and signer pins fail closed', () => {
   const wrongAlgorithm = createResponseToken({ EchoResponse: 'furs' }, { alg: 'HS256' });
+  const unsupportedCritical = createResponseToken({ EchoResponse: 'furs' }, { crit: ['unknown'], unknown: true });
+  const unencodedPayloadClaim = createResponseToken({ EchoResponse: 'furs' }, { b64: false });
   const valid = createResponseToken({ EchoResponse: 'furs' });
   const responseCert = outboundSigner.getCertificate().raw.toString('base64');
   const caCert = new (outboundSigner.getCertificate().constructor)(fixture('test-ca-cert.pem'));
@@ -82,6 +84,8 @@ test('FURS-JWS-002: algorithm, x5c order, trust, validity and signer pins fail c
   );
 
   assert.throws(() => verifyFursJws(wrongAlgorithm, { trustAnchors }), /algorithm must be RS256/);
+  assert.throws(() => verifyFursJws(unsupportedCritical, { trustAnchors }), /unsupported critical/);
+  assert.throws(() => verifyFursJws(unencodedPayloadClaim, { trustAnchors }), /Base64URL payload/);
   assert.throws(() => verifyFursJws(wrongOrder, { trustAnchors }), FursDomainError);
   assert.throws(
     () => verifyFursJws(valid, { trustAnchors: [fixture('test-client-cert.pem')] }),

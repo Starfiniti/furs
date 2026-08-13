@@ -170,6 +170,12 @@ export function verifyFursJws<TPayload = unknown>(
   if (protectedHeader.alg !== 'RS256') {
     throw new FursDomainError('FURS_JWS_ALGORITHM', 'FURS JWS algorithm must be RS256');
   }
+  if (protectedHeader.crit !== undefined) {
+    throw new FursDomainError('FURS_JWS_CRITICAL', 'FURS JWS contains unsupported critical header parameters');
+  }
+  if (protectedHeader.b64 !== undefined && protectedHeader.b64 !== true) {
+    throw new FursDomainError('FURS_JWS_PAYLOAD_ENCODING', 'FURS JWS must use Base64URL payload encoding');
+  }
 
   const chain = decodeX5c(protectedHeader.x5c);
   const trustAnchors = options.trustAnchors.map((anchor) =>

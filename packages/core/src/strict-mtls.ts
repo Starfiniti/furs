@@ -42,6 +42,7 @@ function assertHttpsEndpoint(endpoint: URL): void {
     endpoint.protocol !== 'https:' ||
     endpoint.username !== '' ||
     endpoint.password !== '' ||
+    endpoint.search !== '' ||
     endpoint.hash !== ''
   ) {
     throw new FursDomainError('FURS_TLS_ENDPOINT', 'mTLS endpoint must be a credential-free HTTPS URL');
@@ -51,6 +52,9 @@ function assertHttpsEndpoint(endpoint: URL): void {
 /** Low-level strict mTLS primitive. Production callers should use FursMtlsTransport. */
 export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<StrictMtlsResponse> {
   assertHttpsEndpoint(input.endpoint);
+  if (typeof input.body !== 'string' || Buffer.byteLength(input.body, 'utf8') > MAX_RESPONSE_BYTES) {
+    throw new FursDomainError('FURS_TLS_REQUEST_SIZE', 'FURS request body exceeds the allowed size');
+  }
   const timeoutMilliseconds = input.timeoutMilliseconds ?? 15_000;
   if (!Number.isInteger(timeoutMilliseconds) || timeoutMilliseconds < 1 || timeoutMilliseconds > 120_000) {
     throw new FursDomainError('FURS_TLS_TIMEOUT', 'mTLS timeout must be between 1 and 120000 milliseconds');
@@ -82,20 +86,34 @@ export function postJsonWithStrictMtls(input: StrictMtlsRequest): Promise<Strict
       (response) => {
         const chunks: Buffer[] = [];
         let length = 0;
+        let responseFinished = false;
         const tlsProtocol =
           response.socket instanceof TLSSocket ? response.socket.getProtocol() : null;
 
+        const failResponse = (error: Error): void => {
+          if (responseFinished) return;
+          responseFinished = true;
+          agent.destroy();
+          reject(error);
+        };
+
         response.on('data', (chunk: Buffer) => {
+          if (responseFinished) return;
           length += chunk.length;
           if (length > MAX_RESPONSE_BYTES) {
-            response.destroy(
-              new FursDomainError('FURS_TLS_RESPONSE_SIZE', 'FURS response exceeds the allowed size')
-            );
+            failResponse(new FursDomainError('FURS_TLS_RESPONSE_SIZE', 'FURS response exceeds the allowed size'));
+            response.destroy();
             return;
           }
           chunks.push(chunk);
         });
+        response.on('error', (error) => failResponse(error));
+        response.on('aborted', () => {
+          failResponse(new FursDomainError('FURS_TLS_RESPONSE_ABORTED', 'FURS response was interrupted'));
+        });
         response.on('end', () => {
+          if (responseFinished) return;
+          responseFinished = true;
           const statusCode = response.statusCode ?? 0;
           const body = Buffer.concat(chunks).toString('utf8');
           if (statusCode < 200 || statusCode >= 300) {

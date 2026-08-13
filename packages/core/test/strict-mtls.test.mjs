@@ -13,7 +13,7 @@ const signer = SoftwareFiscalSigner.fromPem({
   certificateChainPem: [ca]
 });
 
-async function withMutualTlsServer(run, statusCode = 200) {
+async function withMutualTlsServer(run, statusCode = 200, responseBody = '{"EchoResponse":"furs"}') {
   const requests = [];
   const server = createServer(
     {
@@ -36,7 +36,7 @@ async function withMutualTlsServer(run, statusCode = 200) {
           body: Buffer.concat(chunks).toString('utf8')
         });
         response.writeHead(statusCode, { 'content-type': 'application/json' });
-        response.end('{"EchoResponse":"furs"}');
+        response.end(responseBody);
       });
     }
   );
@@ -109,6 +109,32 @@ test('FURS-TLS-002: non-HTTPS endpoints are rejected before any request', async 
       secureContext: signer.createMtlsSecureContext([ca])
     }),
     /HTTPS URL/
+  );
+  assert.throws(
+    () => postJsonWithStrictMtls({
+      endpoint: new URL('https://example.test/echo?access_token=secret'),
+      body: '{}',
+      secureContext: signer.createMtlsSecureContext([ca])
+    }),
+    /credential-free HTTPS URL/
+  );
+});
+
+test('FURS-TLS-002/SEC-002: oversized responses fail closed without destabilizing the process', async () => {
+  await withMutualTlsServer(async (endpoint) => {
+    await assert.rejects(
+      postJsonWithStrictMtls({ endpoint, body: '{}', secureContext: signer.createMtlsSecureContext([ca]) }),
+      (error) => error.code === 'FURS_TLS_RESPONSE_SIZE'
+    );
+  }, 200, 'x'.repeat(1_048_577));
+
+  assert.throws(
+    () => postJsonWithStrictMtls({
+      endpoint: new URL('https://example.test/echo'),
+      body: 'x'.repeat(1_048_577),
+      secureContext: signer.createMtlsSecureContext([ca])
+    }),
+    (error) => error.code === 'FURS_TLS_REQUEST_SIZE'
   );
 });
 

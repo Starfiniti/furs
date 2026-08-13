@@ -48,7 +48,7 @@ files, never command-line arguments or environment values.
 
 ## Current acceptance evidence
 
-- `corepack pnpm check`: 161 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- `corepack pnpm check`: 162 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
 - Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
@@ -60,8 +60,12 @@ files, never command-line arguments or environment values.
   unit tests proved firing for certificate, clock, retry backlog, manual review
   and worker-heartbeat categories. Official Alertmanager 0.32.1 then delivered
   all five required release categories to an isolated loopback webhook.
+- An internal certificate/authentication/cryptography review corrected bounded
+  TLS response handling, interrupted-response retry classification, secret-bearing
+  query URLs and unsupported JWS critical semantics. Independent review remains open.
 - A 48-hour soak began on 13 August 2026 with a 15-minute interval. Its first
-  two cycles passed, but the release gate remains open until the full elapsed duration
+  three cycles passed, including one after a worker restart onto the security-
+  hardened build, but the release gate remains open until the full elapsed duration
   and final chained report are verified.
 
 ## External gates still required

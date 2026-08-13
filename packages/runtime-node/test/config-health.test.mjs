@@ -26,6 +26,10 @@ test('FURS-SEC-001: runtime requires file-mounted secrets and pinned trust/schem
     ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'http://example.test/hook',
     FURS_WEBHOOK_SECRET_FILE: '/run/secrets/webhook'
   }), /HTTPS/);
+  assert.throws(() => loadRuntimeConfig({
+    ...base, FURS_WEBHOOK_DESTINATION_ID: 'primary', FURS_WEBHOOK_URL: 'https://example.test/hook?token=secret',
+    FURS_WEBHOOK_SECRET_FILE: '/run/secrets/webhook'
+  }), /query/);
 });
 
 test('FURS-CERT-001/CLOCK-001: certificate expiry and stale/drifting clocks fail readiness', () => {
