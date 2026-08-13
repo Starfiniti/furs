@@ -53,7 +53,7 @@ files, never command-line arguments or environment values.
 
 ## Current acceptance evidence
 
-- `corepack pnpm check`: 172 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
+- `corepack pnpm check`: 174 passed, 0 failed, 0 skipped, 0 todo; release layout passed.
 - Secret scan passed; protected evidence and credentials remain outside Git.
 - Production dependency audit: no known vulnerabilities.
 - Native PostgreSQL 17.10 concurrency/crash, worker-stop recovery and separate
@@ -71,6 +71,11 @@ files, never command-line arguments or environment values.
 - A live issuing-device failure-boundary drill blocked an ordinary command with
   `FURS_DEVICE_FALLBACK_REQUIRED`, created no document/outbox job and left the
   dedicated test device non-operational. Human VKR execution/approval remains open.
+- A controlled network-connectivity interruption retained one explicit
+  subsequent submission in the durable outbox with healthy issuing software,
+  then confirmed the same document, sequence, issue time, message, payload and
+  ZOI after connectivity recovery. The signed response verified and the final
+  outbox count was zero. This is separate from the still-open human VKR exercise.
 - An approved bounded load run used the reviewed 60 invoices/second peak and
   therefore required 180/second. All 1,000 invoices were confirmed with 1,000
   unique documents, 1,000 unique fiscal identities and no duplicates, but only
@@ -90,6 +95,5 @@ capacity review and newly approved bounded rerun are required. Rotation requires
 Production PITR, production alert delivery, independent security review, accountant
 scenario signoff, named compliance ownership and the controller/legal retention
 and privacy schedule remain required before production approval. The controlled
-network-outage drill still requires an administrator-approved temporary firewall
-rule; the human VKR/sales-book procedure remains separate from the completed
-technical device block.
+human VKR/sales-book procedure remains separate from the completed technical
+network-outage and device-software boundary drills.

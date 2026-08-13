@@ -190,11 +190,29 @@ export async function recoverNetworkOutageEvidence(options) {
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const sleep = options.sleep ?? delay;
   const timeoutMs = options.timeoutMs ?? 300_000;
-  await jsonRequest(fetchImpl, api, options.token, `v1/fiscal-invoices/${encodeURIComponent(state.original.documentId)}/retry`, { method: 'POST' });
+  const documentPath = `v1/fiscal-invoices/${encodeURIComponent(state.original.documentId)}`;
+  let current = await jsonRequest(fetchImpl, api, options.token, documentPath);
+  let confirmed = current.status === 'CONFIRMED' ? current : undefined;
+  if (confirmed === undefined && TERMINAL_FAILURE.has(current.status)) {
+    reject('FURS_OUTAGE_TERMINAL', `Recovered invoice reached ${current.status}`);
+  }
+  if (confirmed === undefined) {
+    const retryResponse = await fetchImpl(new URL(`${documentPath}/retry`, api), {
+      method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000),
+      headers: { authorization: `Bearer ${options.token}`, accept: 'application/json' }
+    });
+    if (!retryResponse.ok) {
+      // The normal worker may confirm the retained job between the initial GET
+      // and the explicit operator retry. A 409 is acceptable only when a fresh,
+      // authenticated read proves that exact document is already confirmed.
+      current = await jsonRequest(fetchImpl, api, options.token, documentPath);
+      if (retryResponse.status === 409 && current.status === 'CONFIRMED') confirmed = current;
+      else reject('FURS_OUTAGE_HTTP', `Fiscal API request failed with HTTP ${retryResponse.status}`);
+    }
+  }
   const startedAt = Date.now();
-  let confirmed;
-  while (Date.now() - startedAt < timeoutMs) {
-    const current = await jsonRequest(fetchImpl, api, options.token, `v1/fiscal-invoices/${encodeURIComponent(state.original.documentId)}`);
+  while (confirmed === undefined && Date.now() - startedAt < timeoutMs) {
+    current = await jsonRequest(fetchImpl, api, options.token, documentPath);
     if (current.status === 'CONFIRMED') { confirmed = current; break; }
     if (TERMINAL_FAILURE.has(current.status)) reject('FURS_OUTAGE_TERMINAL', `Recovered invoice reached ${current.status}`);
     await sleep(500);

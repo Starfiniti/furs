@@ -379,3 +379,19 @@ The default remains 1. The upper bound of 250 exists for explicitly approved,
 bounded Phase 7 evidence and is not a production sizing recommendation. A
 failed throughput result does not justify increasing this bound or repeating a
 shared-service load test without a capacity review and new approval.
+
+## ADR-033 — Outage recovery accepts a retry race only after confirmation proof
+
+**Status:** Accepted for pre-production
+**Date:** 2026-08-13
+
+After connectivity returns, the normal durable worker remains authoritative and
+may confirm a retained subsequent submission before an evidence runner requests
+an operator retry. The runner first reads the immutable document. It skips an
+explicit retry when that document is already confirmed.
+
+A retry HTTP 409 is not success by itself. It is accepted only when a fresh,
+authenticated read proves the exact original document is `CONFIRMED`; the final
+evidence must still match document, sequence, issue time, message, payload and
+ZOI identities, verify the signed response and observe an empty outbox. Any
+other conflict or identity change fails closed.

@@ -63,6 +63,7 @@ test('FURS-OUT-001/002: recovery evidence requires the unchanged confirmed ident
     connectivityInterruptionObserved: true, deviceSoftwareOperationalVerified: true
   });
   const responses = [
+    new Response(JSON.stringify({ id: document, status: 'ISSUED_WITHOUT_EOR', messageId: message })),
     new Response('{"status":"accepted"}', { status: 202 }),
     new Response(JSON.stringify({
       id: document, status: 'CONFIRMED', subsequentSubmit: true, invoiceSequence: '12',
@@ -83,6 +84,70 @@ test('FURS-OUT-001/002: recovery evidence requires the unchanged confirmed ident
   assert.match(evidence.evidenceSha256, /^[a-f0-9]{64}$/u);
 });
 
+test('FURS-OUT-001/002: recovery accepts automatic confirmation before an explicit retry', async () => {
+  const zoi = 'zoi-value';
+  const stateText = JSON.stringify({
+    evidenceVersion: 1, environment: 'test', state: 'connectivity-interrupted', scenarioId: 'outage-v1',
+    scenarioSha256: 'd'.repeat(64), sourceVersion, connectivityInterruptionObserved: true,
+    deviceSoftwareOperationalVerified: true,
+    original: {
+      documentId: document, invoiceSequence: '12', issueLocalTime: '2026-08-13T12:55:00',
+      messageId: message, payloadSha256: 'b'.repeat(64),
+      zoiSha256: (await import('node:crypto')).createHash('sha256').update(zoi).digest('hex'),
+      updatedAt: '2026-08-13T10:55:00.000Z'
+    }
+  });
+  let requests = 0;
+  const evidence = await recoverNetworkOutageEvidence({
+    stateText, apiUrl: 'http://127.0.0.1:8080', token: 'x'.repeat(32),
+    fetch: async (_url, options) => {
+      requests += 1;
+      assert.notEqual(options?.method, 'POST');
+      if (requests === 1) return new Response(JSON.stringify({
+        id: document, status: 'CONFIRMED', subsequentSubmit: true, invoiceSequence: '12',
+        issueLocalTime: '2026-08-13T12:55:00', messageId: message, payloadSha256: 'b'.repeat(64),
+        zoi, eor: '019ff57a-f30d-7290-9bb9-951bed760404', updatedAt: '2026-08-13T10:56:00.000Z'
+      }));
+      return new Response('starfiniti_furs_worker_heartbeat_age_seconds 1\nstarfiniti_furs_outbox_active 0\n');
+    }, sleep: async () => undefined
+  });
+  assert.equal(requests, 2);
+  assert.equal(evidence.finalStatus, 'CONFIRMED');
+  assert.equal(evidence.sameDocumentId, true);
+});
+
+test('FURS-OUT-001/002: recovery resolves a retry 409 only after confirmation is proven', async () => {
+  const zoi = 'zoi-value';
+  const stateText = JSON.stringify({
+    evidenceVersion: 1, environment: 'test', state: 'connectivity-interrupted', scenarioId: 'outage-v1',
+    scenarioSha256: 'd'.repeat(64), sourceVersion, connectivityInterruptionObserved: true,
+    deviceSoftwareOperationalVerified: true,
+    original: {
+      documentId: document, invoiceSequence: '12', issueLocalTime: '2026-08-13T12:55:00',
+      messageId: message, payloadSha256: 'b'.repeat(64),
+      zoiSha256: (await import('node:crypto')).createHash('sha256').update(zoi).digest('hex'),
+      updatedAt: '2026-08-13T10:55:00.000Z'
+    }
+  });
+  const responses = [
+    new Response(JSON.stringify({ id: document, status: 'ISSUED_WITHOUT_EOR', messageId: message })),
+    new Response(JSON.stringify({ error: { code: 'FURS_RETRY_STATE' } }), { status: 409 }),
+    new Response(JSON.stringify({
+      id: document, status: 'CONFIRMED', subsequentSubmit: true, invoiceSequence: '12',
+      issueLocalTime: '2026-08-13T12:55:00', messageId: message, payloadSha256: 'b'.repeat(64),
+      zoi, eor: '019ff57a-f30d-7290-9bb9-951bed760404', updatedAt: '2026-08-13T10:56:00.000Z'
+    })),
+    new Response('starfiniti_furs_worker_heartbeat_age_seconds 1\nstarfiniti_furs_outbox_active 0\n')
+  ];
+  const evidence = await recoverNetworkOutageEvidence({
+    stateText, apiUrl: 'http://127.0.0.1:8080', token: 'x'.repeat(32),
+    fetch: async () => responses.shift(), sleep: async () => undefined
+  });
+  assert.equal(responses.length, 0);
+  assert.equal(evidence.finalStatus, 'CONFIRMED');
+  assert.equal(evidence.sameZoiSha256, true);
+});
+
 test('FURS-OUT-001/002: recovery rejects a changed fiscal identity', async () => {
   const zoiSha256 = (await import('node:crypto')).createHash('sha256').update('zoi-value').digest('hex');
   const stateText = JSON.stringify({
@@ -95,6 +160,7 @@ test('FURS-OUT-001/002: recovery rejects a changed fiscal identity', async () =>
     }
   });
   const responses = [
+    new Response(JSON.stringify({ id: document, status: 'ISSUED_WITHOUT_EOR', messageId: message })),
     new Response('{}', { status: 202 }),
     new Response(JSON.stringify({
       id: document, status: 'CONFIRMED', subsequentSubmit: true, invoiceSequence: '13',
