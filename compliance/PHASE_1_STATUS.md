@@ -18,7 +18,7 @@ Gate: P1 — incomplete
 
 ## Verification evidence
 
-- Latest `corepack pnpm check`: 156 tests passed, 0 failed, 0 skipped, 0 todo.
+- Latest `corepack pnpm check`: 157 tests passed, 0 failed, 0 skipped, 0 todo.
 - The official schema with SHA-256 `6b55de4b225470ed508e59bd2fac335e697624d21e9c940b145c6d55a5305ddd` compiled with the pinned Draft-04 validator.
 - An independent OpenSSL 3 RSA-SHA256/MD5 calculation over the 51-byte canonical fixture produced the same 256-byte signature-derived ZOI as the Node implementation: `1da0adb4cc87fd85f909e0acb99a2aa4`.
 - Local negative-path tests prove that missing client identity and an unknown server CA fail the TLS handshake.

@@ -78,11 +78,13 @@ idempotency key, while the final report contains only aggregate counts and a
 SHA-256 evidence chain. Worker restarts and controlled network interruptions
 must still be orchestrated and recorded by the reviewer during the run.
 
-For a reviewed test-load scenario containing one ordinary standard invoice,
-set `FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired
+Copy `templates/furs-load-scenario.example.json` to a protected path, replace
+every placeholder and record the reviewed `expectedPeakPerSecond`. Set
+`FURS_LOAD_CONFIRMATION=furs-test-load-approved`, plus the desired
 `FURS_LOAD_TOTAL` and `FURS_LOAD_CONCURRENCY` (hard limits: 1000 and 20). Run
 `corepack pnpm evidence:load`. It creates fresh message IDs, issue times and
 idempotency keys; requires the configured expected terminal result; proves
-document/fiscal-identity uniqueness; and reports redacted p50/p95 latency.
-Agree the load and schedule with the responsible reviewer before contacting the
-shared FURS test service.
+document/fiscal-identity uniqueness; and reports elapsed throughput plus redacted
+p50/p95 latency. The command exits non-zero when achieved throughput is below
+three times the reviewed peak. Agree the load and schedule with the responsible
+reviewer before contacting the shared FURS test service.

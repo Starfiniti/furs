@@ -34,6 +34,9 @@ function validate(options) {
   if (!/^[A-Za-z0-9._:-]{1,50}$/.test(scenario.policyVersion) || !['CONFIRMED', 'REJECTED', 'MANUAL_REVIEW'].includes(scenario.expectedTerminalStatus)) {
     throw new LoadEvidenceError('FURS_LOAD_REVIEW', 'Load policy version or expected outcome is invalid');
   }
+  if (typeof scenario.expectedPeakPerSecond !== 'number' || !Number.isFinite(scenario.expectedPeakPerSecond) || scenario.expectedPeakPerSecond <= 0 || scenario.expectedPeakPerSecond > 1000) {
+    throw new LoadEvidenceError('FURS_LOAD_REVIEW', 'Load scenario requires a reviewed expected peak per second');
+  }
   if (typeof scenario.request.legalEntityId !== 'string' || !/^[a-fA-F0-9-]{36}$/.test(scenario.request.legalEntityId)) {
     throw new LoadEvidenceError('FURS_LOAD_SCENARIO', 'Load legal entity is invalid');
   }
@@ -77,6 +80,7 @@ export async function runFursLoadEvidence(options) {
   const root = baseUrl(options.baseUrl);
   const fetchImpl = options.fetch ?? globalThis.fetch;
   const sleep = options.sleep ?? ((milliseconds) => new Promise((resolveSleep) => setTimeout(resolveSleep, milliseconds)));
+  const nowMilliseconds = options.nowMilliseconds ?? (() => performance.now());
   const info = await api(fetchImpl, root, options.token, 'v1/system/info');
   if (info.environment !== 'test' || info.legalEntityId !== scenario.request.legalEntityId) throw new LoadEvidenceError('FURS_LOAD_ENVIRONMENT', 'Connected API does not match the test load scenario');
   const echoValue = `load-${createHash('sha256').update(scenario.policyVersion).digest('hex').slice(0, 24)}`;
@@ -84,13 +88,14 @@ export async function runFursLoadEvidence(options) {
   if (echo.value !== echoValue) throw new LoadEvidenceError('FURS_LOAD_ECHO', 'Load preflight echo failed');
   let next = 0;
   const samples = [];
+  const loadStarted = nowMilliseconds();
   const execute = async () => {
     while (true) {
       const index = next++;
       if (index >= total) return;
       const request = { ...scenario.request, messageId: randomUUID(), issueLocalTime: localTime(new Date()) };
       const idempotencyKey = `load:${scenario.policyVersion}:${index}:${randomUUID()}`;
-      const started = performance.now();
+      const started = nowMilliseconds();
       let document = await api(fetchImpl, root, options.token, 'v1/fiscal-invoices', {
         method: 'POST', body: request, headers: { 'idempotency-key': idempotencyKey }
       });
@@ -100,22 +105,32 @@ export async function runFursLoadEvidence(options) {
       }
       if (document.status !== scenario.expectedTerminalStatus) throw new LoadEvidenceError('FURS_LOAD_OUTCOME', 'Load operation reached an unexpected terminal status');
       samples.push({
-        durationMs: performance.now() - started, documentId: document.id,
+        durationMs: nowMilliseconds() - started, documentId: document.id,
         identity: `${document.businessPremiseId}/${document.electronicDeviceId}/${document.invoiceSequence}`,
         status: document.status
       });
     }
   };
   await Promise.all(Array.from({ length: concurrency }, execute));
+  const elapsedMilliseconds = Math.max(1, nowMilliseconds() - loadStarted);
   if (new Set(samples.map((sample) => sample.documentId)).size !== total) throw new LoadEvidenceError('FURS_LOAD_DUPLICATE_DOCUMENT', 'Load returned duplicate fiscal documents');
   if (new Set(samples.map((sample) => sample.identity)).size !== total) throw new LoadEvidenceError('FURS_LOAD_DUPLICATE_IDENTITY', 'Load returned duplicate fiscal identities');
   const durations = samples.map((sample) => sample.durationMs);
+  const achievedPerSecond = total / (elapsedMilliseconds / 1000);
+  const requiredPerSecond = scenario.expectedPeakPerSecond * 3;
   const summary = {
     evidenceVersion: 1, generatedAt: new Date().toISOString(), environment: 'test',
+    scenarioSha256: createHash('sha256').update(options.scenarioText).digest('hex'),
     policyVersionSha256: createHash('sha256').update(scenario.policyVersion).digest('hex'),
     sourceVersion: { technicalDocumentation: '3.2', schemaSha256: scenario.sourceVersion.schemaSha256 },
     total, concurrency, terminalStatus: scenario.expectedTerminalStatus,
-    uniqueDocuments: total, uniqueFiscalIdentities: total,
+    uniqueDocuments: total, uniqueFiscalIdentities: total, duplicateIdentities: 0,
+    expectedPeakPerSecond: scenario.expectedPeakPerSecond,
+    requiredPerSecond,
+    achievedPerSecond: Math.round(achievedPerSecond * 1000) / 1000,
+    targetMultiplier: 3,
+    targetAchieved: achievedPerSecond >= requiredPerSecond,
+    elapsedMilliseconds: Math.round(elapsedMilliseconds),
     latencyMilliseconds: {
       minimum: Math.round(Math.min(...durations)), p50: Math.round(percentile(durations, 0.5)),
       p95: Math.round(percentile(durations, 0.95)), maximum: Math.round(Math.max(...durations))
@@ -137,6 +152,7 @@ async function main() {
     concurrency: process.env.FURS_LOAD_CONCURRENCY === undefined ? undefined : Number(process.env.FURS_LOAD_CONCURRENCY)
   });
   process.stdout.write(`${JSON.stringify(evidence, null, 2)}\n`);
+  if (!evidence.targetAchieved) throw new LoadEvidenceError('FURS_LOAD_THROUGHPUT', 'Load evidence did not reach three times the reviewed expected peak');
 }
 
 if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

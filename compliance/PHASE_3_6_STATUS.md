@@ -67,7 +67,7 @@ platform admin UX and accountant-approved refund/payment scenario mappings.
 
 ## Current local evidence
 
-- `corepack pnpm check`: 156 passed, 0 failed, 0 skipped, 0 todo; the
+- `corepack pnpm check`: 157 passed, 0 failed, 0 skipped, 0 todo; the
   production-only bundle layout also passes.
 - Secret scan passed; protected runtime credentials and detailed evidence remain
   outside the repository.
