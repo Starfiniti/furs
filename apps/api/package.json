@@ -14,7 +14,7 @@
     "@starfiniti/furs-runtime-node": "workspace:*",
     "@starfiniti/furs-service-contract": "workspace:*",
     "@starfiniti/furs-console": "workspace:*",
-    "fastify": "5.11.3"
+    "fastify": "5.12.0"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.4"
